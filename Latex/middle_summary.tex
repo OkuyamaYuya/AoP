@@ -1,0 +1,32 @@
+\documentclass[11pt,a4paper]{jarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{amsmath}
+\usepackage{here}
+\usepackage{indentfirst}
+%
+\topmargin=-5mm
+\oddsidemargin=-5mm
+\evensidemargin=-5mm
+\textheight=235mm
+\textwidth=165mm
+%
+\title{中間発表}
+\author{奥山　裕也\\
+        学際科学科 総合情報学コース\\
+        08-152020\\
+       }
+\date{}
+%
+\begin{document}
+\maketitle
+\section*{題目}
+順序と生成関数より、最適化問題を解くプログラムを導出する研究:
+動的計画法と貪欲法について
+\section*{指導教員}
+森畑明昌
+\section*{要旨}
+本研究は、組み合わせ最適化問題の厳密解を求める効率のよいプログラムを簡単に書けるライブラリの開発を目標としている。ただし、ライブラリによって効率よく求められる問題は、動的計画法または貪欲法によって解を求められる問題に限る。このライブラリを利用するとき、プログラマは貪欲法を用いるか動的計画法を用いるかを悩む必要がなく、問題の候補解を列挙する関数(生成関数)と解の大小を比べる順序について記述して最適化問題を定式化するだけでよい。そしてコンパイル時、問題が貪欲法で解けるか動的計画法で解けるかを順序に関する単調性をSMTソルバーなどで判定することで、貪欲法または動的計画法の動きをするプログラムが導出される。R.S.BirdとO. de Moor\cite{aop}によって示された動的計画法定理と貪欲法定理を利用して、ライブラリを実装する予定である。
+\begin{thebibliography}{9}
+\bibitem{aop} R.S. Bird, O. de Moor, The Algebra of Programming, Prentice Hall, 1997.
+\end{thebibliography}
+\end{document}
