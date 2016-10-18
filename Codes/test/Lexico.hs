@@ -5,7 +5,7 @@ import Data.List (union)
 
 -- Lexicographically Largest Subsequences
 
-string1 = toT "uehrg"
+string1 = toT "todai"
 
 -- global criterion
 r = (<)
