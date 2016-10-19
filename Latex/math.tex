@@ -14,6 +14,14 @@
 \begin{document}
 \section{}
 \[
+a \\
+S \ \bot = [] \\
+S \ (x,xs) = (x:xs)\ or\ xs \\
+subseq = fold_{List} \ S \\
+subsequences = \Lambda subseq 
+\]
+\section{}
+\[
   A = \begin{cases}
     Greedy & (貪欲法で解ける) \\
     DP & (貪欲法で解けないが動的計画法で解ける) \\
@@ -35,12 +43,21 @@
 \[
 a\\
 min :: (a \rightarrow a \rightarrow Bool) \rightarrow Set\ a \rightarrow a\\
-min \preceq as = a \ (\forall x \in as .\ a \preceq x) \\
+min (\preceq) as = a \ (\forall x \in as .\ a \preceq x) \\
 \\
 fold_{List} :: ( (a,b) \leadsto b) \rightarrow[a] \leadsto b \\
+fold_{List}\ f\ [] = f\ \bot \\
 fold_{List}\ f\ (x:xs) = f ( x , fold_{List} \ f\ xs) \\
 \\
-\Lambda S :: (a \leadsto b) \rightarrow a \rightarrow Set\ b \\
+\Lambda :: (a \leadsto b) \rightarrow a \rightarrow Set\ b \\
 \Lambda S\ a = \{ \ b \ |\ b S a \  \}
+\]
+\section{plus,sum}
+\[
+plus :: (Int,Int) \rightarrow Int\\
+plus \ \bot = 0 \\
+plus (x,y) = x+y\\
+knap\ W = min\ (\leq) \circ filter\ ok? \circ subsequences\\
+circ filter\ ok? \circ subsequences\\
 \]
 \end{document}
