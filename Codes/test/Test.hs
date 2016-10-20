@@ -56,9 +56,9 @@ lls_thinning = solver_thinning llsF (\x->True) llsR llsQ
 
 -------------------------------------------------
 
-items = toT [ Item 50 4, Item 3 12, Item 1 1, Item 10 5,
-              Item 40 5, Item 30 6, Item 100 2, Item 3 4,
-              Item 4 53, Item 4 2, Item 32 3, Item 3 2 ]
+items1 = toT [ Item 50 4, Item 3 12, Item 1 1, Item 10 5,
+               Item 40 5, Item 30 6, Item 100 2, Item 3 4,
+               Item 4 53, Item 4 2, Item 32 3, Item 3 2 ]
 items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 string1 = toT "todai"
 string2 = toT "universityoftokyozzzzzzzz"
@@ -67,26 +67,20 @@ string2 = toT "universityoftokyozzzzzzzz"
 
 main :: IO()
 main = do
-  let knap_funs = [ knap_naive , knap_thinning , knap_greedy ]
   putStrLn "knapsack problem"
-  putStrLn "items"
+  let knap_funs = [ knap_naive , knap_thinning , knap_greedy ]
+      itemss    = [ items1 , items2 ]
   mapM_ (print.fromT) $ do
+    items <- itemss
     fun <- knap_funs
     return $ fun items
 
-  putStrLn "items2"
-  mapM_ (print.fromT) $ do
-    fun <- knap_funs
-    return $ fun items2
-
+  putStrLn "Lexicographically Largest Subsequences"
   -- let lls_funs = [ lls_naive , lls_greedy , lls_thinning ]
   let lls_funs = [ lls_greedy , lls_thinning ]
-  putStrLn "Lexicographically Largest subsequences"
+      strings  = [ string1 , string2 ]
   putStrLn $ fromT string1
   mapM_ (print.fromT) $ do
+    string <- strings
     fun <- lls_funs
-    return $ fun string1
-  putStrLn $ fromT string2
-  mapM_ (print.fromT) $ do
-    fun <- lls_funs
-    return $ fun string2
+    return $ fun string
