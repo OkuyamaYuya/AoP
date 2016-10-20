@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 import ListCata
 import Data.List (union)
 
@@ -16,7 +17,7 @@ sumWtT = snd . sumBothT
 
 -- predicate
 within :: Int -> Predicate (T Item)
-within w = \x -> sumWtT x <= w
+within w = \x -> (sumWtT x <= w)
 
 -- global criterion
 knapR :: T Item -> T Item -> Bool
@@ -55,6 +56,7 @@ lls_greedy = solver_greedy llsF (\x->True) llsR
 lls_thinning = solver_thinning llsF (\x->True) llsR llsQ
 
 -------------------------------------------------
+-- test case
 
 items1 = toT [ Item 50 4, Item 3 12, Item 1 1, Item 10 5,
                Item 40 5, Item 30 6, Item 100 2, Item 3 4,
@@ -63,24 +65,20 @@ items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 string1 = toT "todai"
 string2 = toT "universityoftokyozzzzzzzz"
 
+knap_funs = [ knap_naive , knap_thinning , knap_greedy ]
+itemss    = [ items1 , items2 ]
+
+lls_funs = [ lls_greedy , lls_thinning ]
+strings  = [ string1 , string2 ]
+
+fff (funs,inputs) =
+  mapM_ (print.fromT) $ do
+    input <- inputs
+    fun <- funs
+    return $ fun input
 -------------------------------------------------
 
 main :: IO()
 main = do
-  putStrLn "knapsack problem"
-  let knap_funs = [ knap_naive , knap_thinning , knap_greedy ]
-      itemss    = [ items1 , items2 ]
-  mapM_ (print.fromT) $ do
-    items <- itemss
-    fun <- knap_funs
-    return $ fun items
-
-  putStrLn "Lexicographically Largest Subsequences"
-  -- let lls_funs = [ lls_naive , lls_greedy , lls_thinning ]
-  let lls_funs = [ lls_greedy , lls_thinning ]
-      strings  = [ string1 , string2 ]
-  putStrLn $ fromT string1
-  mapM_ (print.fromT) $ do
-    string <- strings
-    fun <- lls_funs
-    return $ fun string
+  fff (knap_funs,itemss)
+  fff (lls_funs,strings)

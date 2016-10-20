@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 module ListCata where
 
 import Data.List (union)
@@ -16,7 +17,7 @@ toT :: Set a -> T a
 toT [] = InT Nil
 toT (x:xs) = InT $ Cons x (toT xs)
 -- from T a to [a]
-fromT :: T a -> Set a
+fromT :: forall a . Show a => T a -> Set a
 fromT (InT Nil) = []
 fromT (InT (Cons x xs)) = x : fromT xs
 
