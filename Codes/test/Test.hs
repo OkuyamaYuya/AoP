@@ -61,7 +61,7 @@ items = toT [ Item 50 4, Item 3 12, Item 1 1, Item 10 5,
               Item 4 53, Item 4 2, Item 32 3, Item 3 2 ]
 items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 string1 = toT "todai"
-string2 = toT "universityoftokyo"
+string2 = toT "universityoftokyozzzzzzzz"
 
 -------------------------------------------------
 
@@ -79,13 +79,14 @@ main = do
     fun <- knap_funs
     return $ fun items2
 
-  let lls_funs = [ lls_naive , lls_greedy , lls_thinning ]
+  -- let lls_funs = [ lls_naive , lls_greedy , lls_thinning ]
+  let lls_funs = [ lls_greedy , lls_thinning ]
   putStrLn "Lexicographically Largest subsequences"
-  putStrLn "todai"
+  putStrLn $ fromT string1
   mapM_ (print.fromT) $ do
     fun <- lls_funs
     return $ fun string1
-  putStrLn "universityoftokyo"
+  putStrLn $ fromT string2
   mapM_ (print.fromT) $ do
     fun <- lls_funs
     return $ fun string2

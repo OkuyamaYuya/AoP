@@ -95,9 +95,13 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 type Order a = a -> a -> Bool
 type Step a b = Predicate b -> F a b -> Set b
 
+-- Λ ( S . F ∈ )
+powerS :: (F a b -> Set b) -> F a (Set b) -> Set b
+powerS sF = concat . (mapSet sF) . cppF
+
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 solver_thinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solver_thinning gF p r q = maxSet r . foldF (thinSet q . concat . (mapSet sF) . cppF)
+solver_thinning gF p r q = maxSet r . foldF (thinSet q . powerS sF)
   where sF = gF p
 
 -- (| max R . Λ S  |)
@@ -109,14 +113,18 @@ solver_naive :: Step a b -> Predicate b -> Order b -> T a -> b
 solver_naive gF p r = maxSet r . filter p . generator
   where 
     sF = gF (\x->True)
-    generator = foldF ( concat . (mapSet sF) . cppF  )
+    generator = foldF ( powerS sF )
 
 
 -------------------------------------------------
 
-
 subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF sbsqF
+subsequences = foldF ( powerS sF )
+  where sF Nil = wrap $ InT Nil
+        sF (c@(Cons a xs)) = (wrap $ InT c) `union` (wrap xs)
+
+subsequences' :: Eq a => T a -> Set (T a)
+subsequences' = foldF sbsqF
   where sbsqF Nil = wrap $ InT Nil
         sbsqF (Cons a xs) = [ InT (Cons a x) | x <- xs ] `union` xs
 
@@ -134,5 +142,3 @@ segments :: Eq a => T a -> Set (T a)
 segments (InT Nil) = wrap $ InT Nil
 segments (a@(InT (Cons x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
-
-
