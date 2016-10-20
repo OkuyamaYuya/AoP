@@ -55,12 +55,13 @@ cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
 cpr :: (a,Set b) -> Set(a,b)
 cpr (x,ys) = [ (x,y) | y <- ys ]
 
--- F ∈ :: F(a , Set (List a)) -> Set( F(a,List a) )
-cppF :: F a (Set(T a)) -> Set(F a (T a))
+cppF :: F a (Set b) -> Set(F a b)
 cppF Nil = wrap $ Nil
 cppF (Cons a xss) = [ (Cons a xs) | xs <- xss ]
 
-test :: (a -> Bool) -> a -> Set a
+type Predicate a = a -> Bool
+
+test :: (Predicate a) -> a -> Set a
 test p x = if p x then [x] else []
 
 -- singleton
@@ -104,4 +105,20 @@ segments :: Eq a => T a -> Set (T a)
 segments (InT Nil) = wrap $ InT Nil
 segments (a@(InT (Cons x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
+
+type Order a = a -> a -> Bool
+type Step a b = Predicate b -> F a b -> Set b
+
+solver_thinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
+solver_thinning gF p r q = maxSet r . foldF (thinSet q . concat . (mapSet sF) . cppF)
+  where sF = gF p
+
+solver_greedy gF p r = foldF ( maxSet r . sF )
+  where sF = gF p
+
+solver_naive :: Step a b -> Predicate b -> Order b -> T a -> b
+solver_naive gF p r = maxSet r . filter p . generator
+  where 
+    sF = gF (\x->True)
+    generator = foldF ( concat . (mapSet sF) . cppF  )
 
