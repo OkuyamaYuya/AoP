@@ -1,5 +1,7 @@
 module DataStructure where
+
 import Data.List (union)
+
 -- base bi-functor : F
 -- F a b = 1 + a x b
 -- fix (F a) = T a
@@ -89,36 +91,48 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
         aveF Nil = (0,0)
         aveF (Cons a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
-subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF sbsqF
-  where sbsqF Nil = wrap $ InT Nil
-        sbsqF (Cons a xs) = [ InT (Cons a x) | x <- xs ] `union` xs
-inits :: Eq a => T a -> Set (T a)
-inits = foldF initF
-  where initF Nil = [InT Nil]
-        initF (Cons a xs) = [InT Nil] `union` (map (InT . (Cons a)) xs)
-tails :: T a -> Set (T a)
-tails = foldF tailF
-  where tailF Nil = [InT Nil]
-        tailF (Cons a (x:xs)) = (InT (Cons a x)) : x : xs
-segments :: Eq a => T a -> Set (T a)
-segments (InT Nil) = wrap $ InT Nil
-segments (a@(InT (Cons x xs))) = inits a `union` (segments xs)
--------------------------------------------------
 
 type Order a = a -> a -> Bool
 type Step a b = Predicate b -> F a b -> Set b
 
+-- max R . (| thin Q . Λ ( S . F ∈ ) |)
 solver_thinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
 solver_thinning gF p r q = maxSet r . foldF (thinSet q . concat . (mapSet sF) . cppF)
   where sF = gF p
 
+-- (| max R . Λ S  |)
 solver_greedy gF p r = foldF ( maxSet r . sF )
   where sF = gF p
 
+-- max R . filter p . (| Λ ( S . F ∈ ) |)
 solver_naive :: Step a b -> Predicate b -> Order b -> T a -> b
 solver_naive gF p r = maxSet r . filter p . generator
   where 
     sF = gF (\x->True)
     generator = foldF ( concat . (mapSet sF) . cppF  )
+
+
+-------------------------------------------------
+
+
+subsequences :: Eq a => T a -> Set (T a)
+subsequences = foldF sbsqF
+  where sbsqF Nil = wrap $ InT Nil
+        sbsqF (Cons a xs) = [ InT (Cons a x) | x <- xs ] `union` xs
+
+inits :: Eq a => T a -> Set (T a)
+inits = foldF initF
+  where initF Nil = [InT Nil]
+        initF (Cons a xs) = [InT Nil] `union` (map (InT . (Cons a)) xs)
+
+tails :: T a -> Set (T a)
+tails = foldF tailF
+  where tailF Nil = [InT Nil]
+        tailF (Cons a (x:xs)) = (InT (Cons a x)) : x : xs
+
+segments :: Eq a => T a -> Set (T a)
+segments (InT Nil) = wrap $ InT Nil
+segments (a@(InT (Cons x xs))) = inits a `union` (segments xs)
+-------------------------------------------------
+
 

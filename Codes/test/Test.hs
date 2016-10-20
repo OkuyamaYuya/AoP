@@ -1,4 +1,4 @@
-import DataStructure
+import ListCata
 import Data.List (union)
 
 -- 0-1 knapsack problem
@@ -31,8 +31,7 @@ knapF :: Step Item (T Item)
 knapF p Nil = wrap $ InT Nil
 knapF p (c@(Cons a xs)) = (wrap xs) `union` (test p (InT c))
 
-knap_naive1 = maxSet knapR . filter (within 10) . subsequences
-knap_naive2 = solver_naive knapF (within 10) knapR 
+knap_naive = solver_naive knapF (within 10) knapR 
 knap_thinning = solver_thinning knapF (within 10) knapR knapQ
 knap_greedy = solver_greedy knapF (within 10) knapR
 
@@ -57,7 +56,9 @@ lls_thinning = solver_thinning llsF (\x->True) llsR llsQ
 
 -------------------------------------------------
 
-items = toT [ Item 50 4, Item 3 12, Item 1 1 , Item 10 5 , Item 40 5 , Item 30 6 ,Item 100 2]
+items = toT [ Item 50 4, Item 3 12, Item 1 1, Item 10 5,
+              Item 40 5, Item 30 6, Item 100 2, Item 3 4,
+              Item 4 53, Item 4 2, Item 32 3, Item 3 2 ]
 items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 string1 = toT "todai"
 string2 = toT "universityoftokyo"
@@ -66,7 +67,7 @@ string2 = toT "universityoftokyo"
 
 main :: IO()
 main = do
-  let knap_funs = [ knap_naive1 , knap_naive2 , knap_thinning , knap_greedy ]
+  let knap_funs = [ knap_naive , knap_thinning , knap_greedy ]
   putStrLn "knapsack problem"
   putStrLn "items"
   mapM_ (print.fromT) $ do
