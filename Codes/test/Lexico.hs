@@ -16,13 +16,13 @@ lls_naive :: T Char -> T Char
 lls_naive = maxSet (<) . subsequences
 
 -- ver. thinning
--- max r . (| thin q . s |)
 lls_thinning = maxSet r . foldF f
   where f Nil = wrap $ InT Nil
-        f (Cons a xs) =
-          let tuple = ( [ InT (Cons a x) | x <- xs ] , xs )
+        f (Cons a xss) =
+          let tuple = ( [ InT (Cons a xs) | xs <- xss ] , xss )
           in thinSet q . merge r $ tuple
 
+-- ver. greedy
 lls_greedy = foldF f
   where f Nil = InT Nil
         f (y@(Cons a xs)) =

@@ -11,8 +11,7 @@
 (assert (forall ((a (List Int)) (b (List Int)))
   (ite (>= (sum a) (sum b))
         (= true (r a b))
-        (= false (r a b))
-  )))
+        (= false (r a b)))))
 
 ; not forall xs,ys,a . xs `r` ys => (a:xs) `r` (a:ys)
 (assert (not (forall ((xs (List Int)) (ys (List Int)) (a Int))

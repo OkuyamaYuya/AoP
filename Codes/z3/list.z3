@@ -5,9 +5,10 @@
       (implies (= x y) (= (insert a x) (insert a y)))))
 (check-sat)
 
-;not forall xs,ys:List Int . (head xs) = (head ys) => (1:xs) = (1:ys)
+;not forall a:Int,xs,ys:List Int . (head xs) = (head ys) => (a:xs) = (a:ys)
 (assert
-  (not (forall ( (xs (List Int)) (ys (List Int)) ) 
-    (implies (= (head xs) (head ys)) (= (insert 1 xs) (insert 1 ys))))))
+  (not (forall ( (xs (List Int)) (ys (List Int)) (a Int) ) 
+    (implies (= (head xs) (head ys)) (= (insert a xs) (insert a ys))))))
 (check-sat)
+
 

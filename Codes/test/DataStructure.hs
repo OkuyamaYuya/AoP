@@ -1,7 +1,5 @@
 module DataStructure where
-
 import Data.List (union)
-
 -- base bi-functor : F
 -- F a b = 1 + a x b
 -- fix (F a) = T a
@@ -23,6 +21,10 @@ fromT (InT (Cons x xs)) = x : fromT xs
 mapF :: (a -> c) -> (b -> d) -> F a b -> F c d
 mapF f g Nil = Nil
 mapF f g (Cons a b) = Cons (f a) (g b)
+
+
+mapSet :: (a -> b) -> Set a -> Set b
+mapSet = map
 
 -- cata-morphism
 foldF :: (F a b -> b) -> T a -> b
@@ -52,6 +54,14 @@ cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
 
 cpr :: (a,Set b) -> Set(a,b)
 cpr (x,ys) = [ (x,y) | y <- ys ]
+
+-- F ∈ :: F(a , Set (List a)) -> Set( F(a,List a) )
+cppF :: F a (Set(T a)) -> Set(F a (T a))
+cppF Nil = wrap $ Nil
+cppF (Cons a xss) = [ (Cons a xs) | xs <- xss ]
+
+test :: (a -> Bool) -> a -> Set a
+test p x = if p x then [x] else []
 
 -- singleton
 wrap :: a -> Set a

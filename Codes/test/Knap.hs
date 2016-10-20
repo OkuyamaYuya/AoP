@@ -31,24 +31,35 @@ q a b = let (va,wa) = sumBothT a
             wa == wb && va <= vb
 
 -- ver. thinning
--- max r . (| thin q . s |)
+-- max r . (| thin q . Λ (s . F ∈ ) |)
+-- s = [ nil , (within w . cons) ∪ outr ]
 knap_thinning :: Int -> T Item -> T Item
 knap_thinning w = maxSet r . foldF f
   where f Nil = wrap $ InT Nil
-        f (Cons a xs) =
-          let tuple = ( [ InT (Cons a x) | x <- xs , within w (InT (Cons a x)) ] , xs )
+        f (Cons a xss) =
+          let tuple = ( [ InT (Cons a xs) | xs <- xss , within w (InT (Cons a xs)) ] , xss )
           in thinSet q . merge r $ tuple
 
 -- ver. fusion
--- max r . (| s |) where = (| s |) = filter (within w) . subsequences
+-- max r . (| Λ([nil , (within w . cons) ∪ outr)] . F ∈ )|)
 knap_fusion :: Int -> T Item -> T Item
 knap_fusion w = maxSet r . foldF sF
   where
     sF Nil = wrap $ InT Nil
-    sF (Cons a xs) = [ InT (Cons a x) | x <- xs , within 10 (InT (Cons a x)) ] `union` xs
+    sF (Cons a xss) = [ InT (Cons a xs) | xs <- xss , within w (InT (Cons a xs)) ] `union` xss
+
+-- ver. fusion
+-- max r . (| Λ([nil , (within w . cons) ∪ outr)] . F ∈ )|)
+-- (| .. |) = (| concat . P sF . cppF |)
+knap_fusion2 :: Int -> T Item -> T Item
+knap_fusion2 w = maxSet r . foldF (concat . (mapSet sF) . cppF)
+  where
+    sF :: F Item (T Item) -> Set(T Item)
+    sF Nil = wrap $ InT Nil
+    sF (c@(Cons a xs)) = (wrap xs) `union` (test (within w) (InT c))
 
 -- ver. naive
--- max r . filter (within w) . Λ (| subseq |) = max r . filter (within w) .subsequences
+-- max r . filter (within w) . Λ (| nil , cons ∪ outr  |) = max r . filter (within w) .subsequences
 knap_naive :: Int -> T Item -> T Item
 knap_naive w = maxSet r . filter (within w) . subsequences
 -------------------------------------------------
@@ -57,7 +68,8 @@ main :: IO()
 main = do
   let funs = [ knap_naive, 
                knap_thinning, 
-               knap_fusion]
+               knap_fusion,
+               knap_fusion2 ]
   putStrLn "items"
   mapM_ (print.fromT) $ do
     fun <- funs
