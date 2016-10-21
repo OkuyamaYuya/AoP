@@ -32,15 +32,6 @@ knapQ a b = let (va,wa) = sumBothT a
                 (vb,wb) = sumBothT b in
                 wa == wb && va <= vb
 
-type X a b = F a b -> Set b
-constF :: ([X a b],[X a b]) -> Step a b
-constF (funs1,funs2) p x =
-  case x of
-    One -> aux funs1
-    _   -> aux funs2
-    where aux fs = do
-            f <- fs
-            f x
 
 knapF :: Step Item (T Item)
 knapF p = constF (funs1,funs2) p
@@ -67,7 +58,7 @@ llsQ :: Order (T Char)
 llsQ = (<=)
 
 llsF :: Ord a => Step a (T a)
-llsF p = constF (funs1,funs2) p
+llsF = constF (funs1,funs2)
   where
     funs1 = [ wrap.nil ]
     funs2 = [ wrap.outr , wrap.cons ]
@@ -94,7 +85,7 @@ string2 = toT "universityoftokyozzzzzzzz"
 knap_funs = [ knapNaive , knapThinning , knapGreedy ]
 itemss    = [ items1 , items2 ]
 
-lls_funs = [ llsGreedy , llsThinning ]
+lls_funs = [ llsThinning , llsGreedy ]
 strings  = [ string1 , string2 ]
 
 fff (funs,inputs) =

@@ -110,6 +110,41 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
         aveF (Cross a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
 
+-- input : ΛS , R , Q
+-- S = [ f1 , f2 ]
+-- 
+-- filter embedding naive
+--   max R . Λ (| S |)
+-- = max R . (| Λ ( S . F ∈ ) |)
+-- = max R . (| Λ S . Λ F ∈   |)
+-- 
+-- filter naive
+-- max R . filter p . (| Λ S . Λ F ∈ |)
+--
+-- thinning
+-- max R . (| thin Q . Λ S . Λ F ∈  |)
+--
+-- greedy
+-- (| max R . Λ S  |)
+-- 
+-- S :: F a b -> b
+-- Λ S :: F a b -> Set b
+-- (| S |) :: T a -> b
+-- Λ ( S . F ∈ ) :: F a (Set b) -> Set b
+
+type Funs a b = ( [F a b -> Set b] , [F a b -> Set b] )
+
+-- use constF to define sF
+constF :: Funs a b -> Step a b
+constF funs p x =
+  case x of
+    One -> aux $ fst funs
+    _   -> aux $ snd funs
+    where aux fs = do
+            f <- fs
+            f x
+
+
 -- preorder on type a
 type Order a = a -> a -> Bool
 
