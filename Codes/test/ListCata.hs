@@ -62,11 +62,6 @@ thinSet q = foldr step []
                       | b `q` a = a : xs
                       | otherwise = b : step a xs
 
-merge :: (a -> a -> Bool) -> (Set a,Set a) -> Set a
-merge r ([],ys) = ys
-merge r (xs,[]) = xs
-merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
-                    | otherwise = b : merge r (a:xs,ys)
 
 cppF :: F a (Set b) -> Set(F a b)
 cppF One = wrap $ One
@@ -86,6 +81,13 @@ wrapMaybe (Just x) = wrap x
 wrapMaybe Nothing  = []
 
 -------------------------------------------------
+
+merge :: (a -> a -> Bool) -> (Set a,Set a) -> Set a
+merge r ([],ys) = ys
+merge r (xs,[]) = xs
+merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
+                    | otherwise = b : merge r (a:xs,ys)
+
 cpp :: (Set a,Set b) -> Set(a,b)
 cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
 
@@ -157,13 +159,13 @@ constF funs x =
 
 
 -- Λ ( S . F ∈ ) = E S . Λ F ∈
-mapSF :: Eq b => Step a b -> F a (Set b) -> Set b
-mapSF sF = nub . concat . (mapSet sF) . cppF
+mapE :: Eq b => Step a b -> Set(F a b) -> Set b
+mapE sF = nub . concat . (mapSet sF)
 -- nub : O (n^2) time
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solverThinning gF p r q = maxSet r . foldF (thinSet q . mapSF gF)
+solverThinning gF p r q = maxSet r . foldF (thinSet q . mapE gF . cppF)
 
 -- (| max R . Λ S  |)
 solverGreedy :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
@@ -173,7 +175,7 @@ solverGreedy gF p r = foldF ( maxSet r . gF )
 solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
 solverNaive gF p r = maxSet r . filter p . generator
   where 
-    generator = foldF ( mapSF gF )
+    generator = foldF ( mapE gF . cppF )
 
 data Mode = Thinning | Greedy | Naive
 
@@ -186,7 +188,7 @@ solverMain gF p r q mode =
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF ( mapSF sF )
+subsequences = foldF ( mapE sF . cppF )
   where
     sF = constF (funs1,funs2)
     funs1 = [ wrap.nil ]
@@ -199,7 +201,7 @@ subsequences = foldF ( mapSF sF )
 --     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
-inits = foldF ( mapSF sF )
+inits = foldF ( mapE sF . cppF )
   where
     sF = constF (funs1,funs2)
     funs1 = [ wrap.nil ]
