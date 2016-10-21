@@ -13,9 +13,13 @@ import Data.List (union)
 data F a b = One | Cross a b deriving (Show,Eq,Ord)
 newtype T a = InT (F a (T a)) deriving (Show,Eq,Ord)
 
+nil :: T a
 nil  = InT One
-cons (x@(Cross a b)) = InT x
+cons :: F a (T a) -> T a
+cons (Cross a b) = InT (Cross a b)
+outl :: F a b -> a
 outl (Cross a b) = a
+outr :: F a b -> b
 outr (Cross a b) = b
 
 -- Set

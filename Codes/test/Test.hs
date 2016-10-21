@@ -31,7 +31,7 @@ knapQ a b = let (va,wa) = sumBothT a
 
 knapF :: Step Item (T Item)
 knapF p One = wrap $ nil
-knapF p (c@(Cross a xs)) = (wrap xs) `union` (test p (InT c))
+knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 knapNaive = knapMain Naive
@@ -51,7 +51,7 @@ llsQ = (<=)
 
 llsF :: Ord a => Step a (T a)
 llsF p One = wrap $ nil
-llsF p (c@(Cross a xs)) = (wrap xs) `union` (wrap $ InT c)
+llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
 llsNaive = llsMain Naive
