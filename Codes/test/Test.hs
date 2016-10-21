@@ -36,8 +36,8 @@ knapQ a b = let (va,wa) = sumBothT a
 knapF :: Predicate (T Item) -> Step Item (T Item)
 knapF p = constF (funs1,funs2)
   where
-    funs1 = [ wrap.nil ]
-    funs2 = [ wrap.outr , wrapMaybe.test p.cons ]
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . outr , test p . cons ]
 -- knapF p One = wrap $ nil One
 -- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
@@ -61,8 +61,8 @@ llsQ = (<=)
 llsF :: Ord a => Predicate (T a) -> Step a (T a)
 llsF _ = constF (funs1,funs2)
   where
-    funs1 = [ wrap.nil ]
-    funs2 = [ wrap.outr , wrap.cons ]
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . outr , Just . cons ]
 -- llsF p One = wrap $ nil One
 -- llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
 

@@ -6,6 +6,7 @@
 module ListCata where
 
 import Data.List (union,nub)
+import Data.Maybe (maybeToList)
 
 data F a b = One | Cross a b deriving (Show,Eq,Ord)
 
@@ -76,10 +77,6 @@ test p x = if p x then Just x else Nothing
 wrap :: a -> Set a
 wrap x = [x]
 
-wrapMaybe :: Maybe a -> Set a
-wrapMaybe (Just x) = wrap x
-wrapMaybe Nothing  = []
-
 -------------------------------------------------
 
 merge :: (a -> a -> Bool) -> (Set a,Set a) -> Set a
@@ -145,7 +142,7 @@ type Order a = a -> a -> Bool
 -- (| S |) :: T a -> b
 type Step a b = F a b -> Set b
 
-type Funs a b = ( [Step a b] , [Step a b] )
+type Funs a b = ( [F a b -> Maybe b] , [F a b -> Maybe b] )
 
 -- use constF to define sF
 constF :: Funs a b -> Step a b
@@ -155,8 +152,7 @@ constF funs x =
     Cross _ _ -> aux $ snd funs
     where aux fs = do
             f <- fs
-            f x
-
+            maybeToList $ f x
 
 -- Λ ( S . F ∈ ) = E S . Λ F ∈
 mapE :: Eq b => Step a b -> Set(F a b) -> Set b
@@ -193,8 +189,8 @@ subsequences :: Eq a => T a -> Set (T a)
 subsequences = foldF ( mapE sF . cppF )
   where
     sF = constF (funs1,funs2)
-    funs1 = [ wrap.nil ]
-    funs2 = [ wrap.cons , wrap.outr ]
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . cons , Just . outr ]
 
 -- subsequences' :: Eq a => T a -> Set (T a)
 -- subsequences' = foldF sbsqF
@@ -206,8 +202,8 @@ inits :: Eq a => T a -> Set (T a)
 inits = foldF ( mapE sF . cppF )
   where
     sF = constF (funs1,funs2)
-    funs1 = [ wrap.nil ]
-    funs2 = [ wrap.cons , wrap.nil ]
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . cons , Just . nil ]
 
 -- inits' :: Eq a => T a -> Set (T a)
 -- inits' = foldF initF
