@@ -164,18 +164,20 @@ mapE sF = nub . concat . (mapSet sF)
 -- nub : O (n^2) time
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
+-- = max R . (| thin Q . E S . ΛF ∈ |)
 solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solverThinning gF p r q = maxSet r . foldF (thinSet q . mapE gF . cppF)
+solverThinning sF p r q = maxSet r . foldF (thinSet q . mapE sF . cppF)
 
 -- (| max R . Λ S  |)
 solverGreedy :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverGreedy gF p r = foldF ( maxSet r . gF )
+solverGreedy sF p r = foldF ( maxSet r . sF )
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
+-- = max R . filter p . (| E S . ΛF ∈ ) |)
 solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverNaive gF p r = maxSet r . filter p . generator
-  where 
-    generator = foldF ( mapE gF . cppF )
+solverNaive sF p r = maxSet r . filter p . generator
+  where
+    generator = foldF ( mapE sF . cppF )
 
 data Mode = Thinning | Greedy | Naive
 
