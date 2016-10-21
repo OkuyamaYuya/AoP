@@ -33,13 +33,14 @@ knapQ a b = let (va,wa) = sumBothT a
                 wa == wb && va <= vb
 
 
-knapF :: Step Item (T Item)
-knapF p = constF (funs1,funs2) p
+knapF :: Predicate (T Item) -> Step Item (T Item)
+knapF p = constF (funs1,funs2)
   where
     funs1 = [ wrap.nil ]
     funs2 = [ wrap.outr , test p.cons ]
 -- knapF p One = wrap $ nil One
 -- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
+
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 knapNaive = knapMain Naive
@@ -57,8 +58,8 @@ llsR = (<=)
 llsQ :: Order (T Char)
 llsQ = (<=)
 
-llsF :: Ord a => Step a (T a)
-llsF = constF (funs1,funs2)
+llsF :: Ord a => Predicate (T a) -> Step a (T a)
+llsF _ = constF (funs1,funs2)
   where
     funs1 = [ wrap.nil ]
     funs2 = [ wrap.outr , wrap.cons ]

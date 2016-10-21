@@ -133,11 +133,18 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- (| S |) :: T a -> b
 -- Λ ( S . F ∈ ) :: F a (Set b) -> Set b
 
-type Funs a b = ( [F a b -> Set b] , [F a b -> Set b] )
+
+-- preorder on type a
+type Order a = a -> a -> Bool
+
+-- (| S |) :: T a -> b
+type Step a b = F a b -> Set b
+
+type Funs a b = ( [Step a b] , [Step a b] )
 
 -- use constF to define sF
 constF :: Funs a b -> Step a b
-constF funs p x =
+constF funs x =
   case x of
     One       -> aux $ fst funs
     Cross _ _ -> aux $ snd funs
@@ -146,48 +153,39 @@ constF funs p x =
             f x
 
 
--- preorder on type a
-type Order a = a -> a -> Bool
-
--- (| S |) :: T a -> b
-type Step a b = Predicate b -> F a b -> Set b
-
 -- Λ ( S . F ∈ ) = E S . Λ F ∈
-mapSF :: Eq b => (F a b -> Set b) -> F a (Set b) -> Set b
+mapSF :: Eq b => Step a b -> F a (Set b) -> Set b
 mapSF sF = nub . concat . (mapSet sF) . cppF
 -- nub : O (n^2) time
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solverThinning gF p r q = maxSet r . foldF (thinSet q . mapSF sF)
-  where sF = gF p
+solverThinning gF p r q = maxSet r . foldF (thinSet q . mapSF gF)
 
 -- (| max R . Λ S  |)
 solverGreedy :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverGreedy gF p r = foldF ( maxSet r . sF )
-  where sF = gF p
+solverGreedy gF p r = foldF ( maxSet r . gF )
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
 solverNaive gF p r = maxSet r . filter p . generator
   where 
-    sF = gF (\x->True)
-    generator = foldF ( mapSF sF )
+    generator = foldF ( mapSF gF )
 
 data Mode = Thinning | Greedy | Naive
 
-solverMain :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain :: Eq b => (Predicate b -> Step a b) -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
 solverMain gF p r q mode =
   case mode of
-    Thinning -> solverThinning gF p r q
-    Greedy   -> solverGreedy gF p r
-    Naive    -> solverNaive gF p r
+    Thinning -> solverThinning (gF p) p r q
+    Greedy   -> solverGreedy (gF p) p r
+    Naive    -> solverNaive (gF p) p r
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
 subsequences = foldF ( mapSF sF )
   where
-    sF = constF (funs1,funs2) (\x->True)
+    sF = constF (funs1,funs2)
     funs1 = [ wrap.nil ]
     funs2 = [ wrap.cons , wrap.outr ]
 
@@ -200,7 +198,7 @@ subsequences = foldF ( mapSF sF )
 inits :: Eq a => T a -> Set (T a)
 inits = foldF ( mapSF sF )
   where
-    sF = constF (funs1,funs2) (\x->True)
+    sF = constF (funs1,funs2)
     funs1 = [ wrap.nil ]
     funs2 = [ wrap.cons , wrap.nil ]
 
