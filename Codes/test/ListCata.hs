@@ -138,8 +138,8 @@ type Funs a b = ( [F a b -> Set b] , [F a b -> Set b] )
 constF :: Funs a b -> Step a b
 constF funs p x =
   case x of
-    One -> aux $ fst funs
-    _   -> aux $ snd funs
+    One       -> aux $ fst funs
+    Cross _ _ -> aux $ snd funs
     where aux fs = do
             f <- fs
             f x
