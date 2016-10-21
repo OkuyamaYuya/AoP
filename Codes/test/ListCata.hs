@@ -126,7 +126,7 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- max R . (| thin Q . E S . Λ F ∈  |)
 -- 
 -- greedy
--- (| max R . E S . wrap |)
+-- (| max R . Λ S |)
 -- 
 -- S :: F a b -> b
 -- Λ S :: F a b -> Set b
@@ -219,5 +219,3 @@ segments :: Eq a => T a -> Set (T a)
 segments (InT One) = wrap $ nil One
 segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
-main = do
-  print $ map fromT $ inits $ toT [1..3]
