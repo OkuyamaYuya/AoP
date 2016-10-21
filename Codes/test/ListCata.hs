@@ -117,16 +117,16 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- filter embedding naive
 --   max R . Λ (| S |)
 -- = max R . (| Λ ( S . F ∈ ) |)
--- = max R . (| Λ S . Λ F ∈   |)
+-- = max R . (| E S . Λ F ∈   |)
 -- 
 -- filter naive
--- max R . filter p . (| Λ S . Λ F ∈ |)
+-- max R . filter p . (| E S . Λ F ∈ |)
 --
 -- thinning
--- max R . (| thin Q . Λ S . Λ F ∈  |)
---
+-- max R . (| thin Q . E S . Λ F ∈  |)
+-- 
 -- greedy
--- (| max R . Λ S  |)
+-- (| max R . E S . wrap |)
 -- 
 -- S :: F a b -> b
 -- Λ S :: F a b -> Set b
@@ -152,14 +152,14 @@ type Order a = a -> a -> Bool
 -- (| S |) :: T a -> b
 type Step a b = Predicate b -> F a b -> Set b
 
--- Λ ( S . F ∈ )
-powerS :: Eq b => (F a b -> Set b) -> F a (Set b) -> Set b
-powerS sF = nub . concat . (mapSet sF) . cppF
+-- Λ ( S . F ∈ ) = E S . Λ F ∈
+mapSF :: Eq b => (F a b -> Set b) -> F a (Set b) -> Set b
+mapSF sF = nub . concat . (mapSet sF) . cppF
 -- nub : O (n^2) time
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solverThinning gF p r q = maxSet r . foldF (thinSet q . powerS sF)
+solverThinning gF p r q = maxSet r . foldF (thinSet q . mapSF sF)
   where sF = gF p
 
 -- (| max R . Λ S  |)
@@ -172,7 +172,7 @@ solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
 solverNaive gF p r = maxSet r . filter p . generator
   where 
     sF = gF (\x->True)
-    generator = foldF ( powerS sF )
+    generator = foldF ( mapSF sF )
 
 data Mode = Thinning | Greedy | Naive
 
@@ -185,7 +185,7 @@ solverMain gF p r q mode =
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF ( powerS sF )
+subsequences = foldF ( mapSF sF )
   where
     sF = constF (funs1,funs2) (\x->True)
     funs1 = [ wrap.nil ]
@@ -198,7 +198,7 @@ subsequences = foldF ( powerS sF )
 --     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
-inits = foldF ( powerS sF )
+inits = foldF ( mapSF sF )
   where
     sF = constF (funs1,funs2) (\x->True)
     funs1 = [ wrap.nil ]
