@@ -7,18 +7,19 @@ module ListCata where
 
 import Data.List (union)
 
--- base bi-functor : F
--- F a b = 1 + a x b
--- fix (F a) = T a
 data F a b = One | Cross a b deriving (Show,Eq,Ord)
+
 newtype T a = InT (F a (T a)) deriving (Show,Eq,Ord)
 
-nil :: T a
-nil  = InT One
+nil :: F a (T a) -> T a
+nil One = InT One
+
 cons :: F a (T a) -> T a
 cons (Cross a b) = InT (Cross a b)
+
 outl :: F a b -> a
 outl (Cross a b) = a
+
 outr :: F a b -> b
 outr (Cross a b) = b
 
@@ -27,8 +28,9 @@ type Set a = [a]
 
 -- from [a] to T a
 toT :: Set a -> T a
-toT [] = nil
-toT (x:xs) = InT $ Cross x (toT xs)
+toT [] = nil One
+toT (x:xs) = cons $ Cross x (toT xs)
+
 -- from T a to [a]
 fromT :: forall a . Show a => T a -> Set a
 fromT (InT One) = []
@@ -65,12 +67,6 @@ merge r (xs,[]) = xs
 merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
                     | otherwise = b : merge r (a:xs,ys)
 
-cpp :: (Set a,Set b) -> Set(a,b)
-cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
-
-cpr :: (a,Set b) -> Set(a,b)
-cpr (x,ys) = [ (x,y) | y <- ys ]
-
 cppF :: F a (Set b) -> Set(F a b)
 cppF One = wrap $ One
 cppF (Cross a xss) = [ (Cross a xs) | xs <- xss ]
@@ -83,6 +79,14 @@ test p x = if p x then [x] else []
 -- singleton
 wrap :: a -> Set a
 wrap a = [a]
+
+
+-------------------------------------------------
+cpp :: (Set a,Set b) -> Set(a,b)
+cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
+
+cpr :: (a,Set b) -> Set(a,b)
+cpr (x,ys) = [ (x,y) | y <- ys ]
 
 split :: (a -> b) -> (a -> c) -> a -> (b,c)
 split f g x = ( f x , g x )
@@ -106,7 +110,10 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
         aveF (Cross a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
 
+-- preorder on type a
 type Order a = a -> a -> Bool
+
+-- (| S |) :: T a -> b
 type Step a b = Predicate b -> F a b -> Set b
 
 -- Λ ( S . F ∈ )
@@ -142,25 +149,25 @@ solverMain gF p r q mode =
 
 subsequences :: Eq a => T a -> Set (T a)
 subsequences = foldF ( powerS sF )
-  where sF One = wrap nil
+  where sF One = wrap $ nil One
         sF (c@(Cross a xs)) = (wrap $ cons c) `union` (wrap $ outr c)
 
 subsequences' :: Eq a => T a -> Set (T a)
 subsequences' = foldF sbsqF
-  where sbsqF One = wrap nil
+  where sbsqF One = wrap $ nil One
         sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
 inits = foldF initF
-  where initF One = wrap nil
-        initF (Cross a xss) = (wrap nil) `union` (map (InT . (Cross a)) xss)
+  where initF One = wrap $ nil One
+        initF (Cross a xss) = (wrap $ nil One) `union` (map (InT . (Cross a)) xss)
 
 tails :: T a -> Set (T a)
 tails = foldF tailF
-  where tailF One = wrap nil
+  where tailF One = wrap $ nil One
         tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
 
 segments :: Eq a => T a -> Set (T a)
-segments (InT One) = wrap $ nil
+segments (InT One) = wrap $ nil One
 segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------

@@ -11,8 +11,10 @@ sumBothT :: T Item -> (Int,Int)
 sumBothT = foldF f
   where f One = (0,0)
         f (Cross a b) = ( value a + fst b , weight a + snd b )
+
 sumValT :: T Item -> Int
 sumValT = fst . sumBothT
+
 sumWtT :: T Item -> Int
 sumWtT = snd . sumBothT
 
@@ -23,15 +25,30 @@ within w = \x -> (sumWtT x <= w)
 -- global criterion
 knapR :: T Item -> T Item -> Bool
 knapR a b = sumValT a <= sumValT b
+
 -- local criterion
 knapQ :: T Item -> T Item -> Bool
 knapQ a b = let (va,wa) = sumBothT a
                 (vb,wb) = sumBothT b in
                 wa == wb && va <= vb
 
+type X a b = F a b -> Set b
+constF :: ([X a b],[X a b]) -> Step a b
+constF (funs1,funs2) p x =
+  case x of
+    One -> aux funs1
+    _   -> aux funs2
+    where aux fs = do
+            f <- fs
+            f x
+
 knapF :: Step Item (T Item)
-knapF p One = wrap $ nil
-knapF p x = (wrap $ outr x) `union` (test p $ cons x)
+knapF p = constF (funs1,funs2) p
+  where
+    funs1 = [ wrap.nil ]
+    funs2 = [ wrap.outr , test p.cons ]
+-- knapF p One = wrap $ nil One
+-- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 knapNaive = knapMain Naive
@@ -50,8 +67,12 @@ llsQ :: Order (T Char)
 llsQ = (<=)
 
 llsF :: Ord a => Step a (T a)
-llsF p One = wrap $ nil
-llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
+llsF p = constF (funs1,funs2) p
+  where
+    funs1 = [ wrap.nil ]
+    funs2 = [ wrap.outr , wrap.cons ]
+-- llsF p One = wrap $ nil One
+-- llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
 llsNaive = llsMain Naive
