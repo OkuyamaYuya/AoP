@@ -74,13 +74,16 @@ cppF (Cross a xss) = [ (Cross a xs) | xs <- xss ]
 
 type Predicate a = a -> Bool
 
-test :: (Predicate a) -> a -> Set a
-test p x = if p x then [x] else []
+test :: (Predicate a) -> a -> Maybe a
+test p x = if p x then Just x else Nothing
 
 -- singleton
 wrap :: a -> Set a
-wrap a = [a]
+wrap x = [x]
 
+wrapMaybe :: Maybe a -> Set a
+wrapMaybe (Just x) = wrap x
+wrapMaybe Nothing  = []
 
 -------------------------------------------------
 cpp :: (Set a,Set b) -> Set(a,b)

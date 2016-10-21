@@ -37,7 +37,7 @@ knapF :: Predicate (T Item) -> Step Item (T Item)
 knapF p = constF (funs1,funs2)
   where
     funs1 = [ wrap.nil ]
-    funs2 = [ wrap.outr , test p.cons ]
+    funs2 = [ wrap.outr , wrapMaybe.test p.cons ]
 -- knapF p One = wrap $ nil One
 -- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
