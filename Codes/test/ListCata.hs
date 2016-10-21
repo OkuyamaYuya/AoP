@@ -5,14 +5,14 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module ListCata where
 
-import Data.List (union)
+import Data.List (union,nub)
 
 data F a b = One | Cross a b deriving (Show,Eq,Ord)
 
 newtype T a = InT (F a (T a)) deriving (Show,Eq,Ord)
 
 nil :: F a (T a) -> T a
-nil One = InT One
+nil _ = InT One
 
 cons :: F a (T a) -> T a
 cons (Cross a b) = InT (Cross a b)
@@ -25,6 +25,7 @@ outr (Cross a b) = b
 
 -- Set
 type Set a = [a]
+
 
 -- from [a] to T a
 toT :: Set a -> T a
@@ -152,21 +153,22 @@ type Order a = a -> a -> Bool
 type Step a b = Predicate b -> F a b -> Set b
 
 -- Λ ( S . F ∈ )
-powerS :: (F a b -> Set b) -> F a (Set b) -> Set b
-powerS sF = concat . (mapSet sF) . cppF
+powerS :: Eq b => (F a b -> Set b) -> F a (Set b) -> Set b
+powerS sF = nub . concat . (mapSet sF) . cppF
+-- nub : O (n^2) time
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
-solverThinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
+solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
 solverThinning gF p r q = maxSet r . foldF (thinSet q . powerS sF)
   where sF = gF p
 
 -- (| max R . Λ S  |)
-solverGreedy :: Step a b -> Predicate b -> Order b -> T a -> b
+solverGreedy :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
 solverGreedy gF p r = foldF ( maxSet r . sF )
   where sF = gF p
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
-solverNaive :: Step a b -> Predicate b -> Order b -> T a -> b
+solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
 solverNaive gF p r = maxSet r . filter p . generator
   where 
     sF = gF (\x->True)
@@ -174,7 +176,7 @@ solverNaive gF p r = maxSet r . filter p . generator
 
 data Mode = Thinning | Greedy | Naive
 
-solverMain :: Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
 solverMain gF p r q mode =
   case mode of
     Thinning -> solverThinning gF p r q
@@ -184,21 +186,32 @@ solverMain gF p r q mode =
 
 subsequences :: Eq a => T a -> Set (T a)
 subsequences = foldF ( powerS sF )
-  where sF One = wrap $ nil One
-        sF (c@(Cross a xs)) = (wrap $ cons c) `union` (wrap $ outr c)
+  where
+    sF = constF (funs1,funs2) (\x->True)
+    funs1 = [ wrap.nil ]
+    funs2 = [ wrap.cons , wrap.outr ]
 
-subsequences' :: Eq a => T a -> Set (T a)
-subsequences' = foldF sbsqF
-  where sbsqF One = wrap $ nil One
-        sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
+-- subsequences' :: Eq a => T a -> Set (T a)
+-- subsequences' = foldF sbsqF
+--   where
+--     sbsqF One = wrap $ nil One
+--     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
-inits = foldF initF
-  where initF One = wrap $ nil One
-        initF (Cross a xss) = (wrap $ nil One) `union` (map (InT . (Cross a)) xss)
+inits = foldF ( powerS sF )
+  where
+    sF = constF (funs1,funs2) (\x->True)
+    funs1 = [ wrap.nil ]
+    funs2 = [ wrap.cons , wrap.nil ]
 
-tails :: T a -> Set (T a)
-tails = foldF tailF
+-- inits' :: Eq a => T a -> Set (T a)
+-- inits' = foldF initF
+--   where
+--    initF One = wrap $ nil One
+--    initF (Cross a xss) = (wrap $ nil One) `union` (map (cons . (Cross a)) xss)
+
+tails' :: T a -> Set (T a)
+tails' = foldF tailF
   where tailF One = wrap $ nil One
         tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
 
@@ -206,3 +219,5 @@ segments :: Eq a => T a -> Set (T a)
 segments (InT One) = wrap $ nil One
 segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
+main = do
+  print $ map fromT $ inits $ toT [1..3]
