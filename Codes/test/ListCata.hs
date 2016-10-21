@@ -1,3 +1,7 @@
+-------------------------------------------------
+-- cons-List
+-- Catamorphism
+-------------------------------------------------
 {-# LANGUAGE ExistentialQuantification #-}
 module ListCata where
 
@@ -6,24 +10,29 @@ import Data.List (union)
 -- base bi-functor : F
 -- F a b = 1 + a x b
 -- fix (F a) = T a
-data F a b = Nil | Cons a b deriving (Show,Eq,Ord)
+data F a b = One | Cross a b deriving (Show,Eq,Ord)
 newtype T a = InT (F a (T a)) deriving (Show,Eq,Ord)
+
+nil  = InT One
+cons (x@(Cross a b)) = InT x
+outl (Cross a b) = a
+outr (Cross a b) = b
 
 -- Set
 type Set a = [a]
 
 -- from [a] to T a
 toT :: Set a -> T a
-toT [] = InT Nil
-toT (x:xs) = InT $ Cons x (toT xs)
+toT [] = nil
+toT (x:xs) = InT $ Cross x (toT xs)
 -- from T a to [a]
 fromT :: forall a . Show a => T a -> Set a
-fromT (InT Nil) = []
-fromT (InT (Cons x xs)) = x : fromT xs
+fromT (InT One) = []
+fromT (InT x) = (outl x) : fromT (outr x)
 
 mapF :: (a -> c) -> (b -> d) -> F a b -> F c d
-mapF f g Nil = Nil
-mapF f g (Cons a b) = Cons (f a) (g b)
+mapF f g One = One
+mapF f g (Cross a b) = Cross (f a) (g b)
 
 
 mapSet :: (a -> b) -> Set a -> Set b
@@ -59,8 +68,8 @@ cpr :: (a,Set b) -> Set(a,b)
 cpr (x,ys) = [ (x,y) | y <- ys ]
 
 cppF :: F a (Set b) -> Set(F a b)
-cppF Nil = wrap $ Nil
-cppF (Cons a xss) = [ (Cons a xs) | xs <- xss ]
+cppF One = wrap $ One
+cppF (Cross a xss) = [ (Cross a xs) | xs <- xss ]
 
 type Predicate a = a -> Bool
 
@@ -77,20 +86,20 @@ split f g x = ( f x , g x )
 sumT :: T Int -> Int
 sumT = foldF plusF
   where plusF :: F Int Int -> Int
-        plusF Nil = 0
-        plusF (Cons a b) = a + b
+        plusF One = 0
+        plusF (Cross a b) = a + b
 -------------------------------------------------
 lengthT :: T a -> Int
 lengthT = foldF lenF
   where lenF :: F a Int -> Int
-        lenF Nil = 0
-        lenF (Cons a b) = 1 + b
+        lenF One = 0
+        lenF (Cross a b) = 1 + b
 -------------------------------------------------
 averageT :: T Int -> Int
 averageT = ( \(s,l) -> s `div` l ) . foldF aveF
   where aveF :: F Int (Int,Int) -> (Int,Int)
-        aveF Nil = (0,0)
-        aveF (Cons a (b,n)) = ( a+b , n+1 )
+        aveF One = (0,0)
+        aveF (Cross a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
 
 type Order a = a -> a -> Bool
@@ -101,45 +110,53 @@ powerS :: (F a b -> Set b) -> F a (Set b) -> Set b
 powerS sF = concat . (mapSet sF) . cppF
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
-solver_thinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solver_thinning gF p r q = maxSet r . foldF (thinSet q . powerS sF)
+solverThinning :: Step a b -> Predicate b -> Order b -> Order b -> T a -> b
+solverThinning gF p r q = maxSet r . foldF (thinSet q . powerS sF)
   where sF = gF p
 
 -- (| max R . Λ S  |)
-solver_greedy gF p r = foldF ( maxSet r . sF )
+solverGreedy :: Step a b -> Predicate b -> Order b -> T a -> b
+solverGreedy gF p r = foldF ( maxSet r . sF )
   where sF = gF p
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
-solver_naive :: Step a b -> Predicate b -> Order b -> T a -> b
-solver_naive gF p r = maxSet r . filter p . generator
+solverNaive :: Step a b -> Predicate b -> Order b -> T a -> b
+solverNaive gF p r = maxSet r . filter p . generator
   where 
     sF = gF (\x->True)
     generator = foldF ( powerS sF )
 
+data Mode = Thinning | Greedy | Naive
 
+solverMain :: Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain gF p r q mode =
+  case mode of
+    Thinning -> solverThinning gF p r q
+    Greedy   -> solverGreedy gF p r
+    Naive    -> solverNaive gF p r
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
 subsequences = foldF ( powerS sF )
-  where sF Nil = wrap $ InT Nil
-        sF (c@(Cons a xs)) = (wrap $ InT c) `union` (wrap xs)
+  where sF One = wrap nil
+        sF (c@(Cross a xs)) = (wrap $ cons c) `union` (wrap $ outr c)
 
 subsequences' :: Eq a => T a -> Set (T a)
 subsequences' = foldF sbsqF
-  where sbsqF Nil = wrap $ InT Nil
-        sbsqF (Cons a xs) = [ InT (Cons a x) | x <- xs ] `union` xs
+  where sbsqF One = wrap nil
+        sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
 inits = foldF initF
-  where initF Nil = [InT Nil]
-        initF (Cons a xs) = [InT Nil] `union` (map (InT . (Cons a)) xs)
+  where initF One = wrap nil
+        initF (Cross a xss) = (wrap nil) `union` (map (InT . (Cross a)) xss)
 
 tails :: T a -> Set (T a)
 tails = foldF tailF
-  where tailF Nil = [InT Nil]
-        tailF (Cons a (x:xs)) = (InT (Cons a x)) : x : xs
+  where tailF One = wrap nil
+        tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
 
 segments :: Eq a => T a -> Set (T a)
-segments (InT Nil) = wrap $ InT Nil
-segments (a@(InT (Cons x xs))) = inits a `union` (segments xs)
+segments (InT One) = wrap $ nil
+segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
