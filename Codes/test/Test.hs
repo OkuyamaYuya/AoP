@@ -2,6 +2,7 @@
 
 import ListCata
 import Data.List (union)
+import Debug.Trace
 
 -------------------------------------------------
 -- 0-1 knapsack problem
@@ -69,12 +70,12 @@ llsMain = solverMain llsF (\x->True) llsR llsQ
 
 
 -------------------------------------------------
--- Driving problem
+-- Midas Driving problem
 -------------------------------------------------
 --
 -- better-local Greedy
 -- local optimality /= global optimality
--- 
+--
 -- Thinning problem when expressed by Catamorphism
 --
 -- min R . filter p . Λ (| S |)
@@ -87,7 +88,7 @@ driveR :: Order (T Stop)
 driveR a b = lengthT a >= lengthT b
 
 driveQ :: Order (T Stop)
-driveQ a b = lengthT a >= lengthT b && doko a <= doko b
+driveQ a b = lengthT a >= lengthT b && doko a == doko b
   where
     doko :: T Stop -> Int
     doko (InT One) = 0
@@ -108,7 +109,7 @@ driveF = constF (funs1,funs2)
     funs2 = [ fun cons , fun outr ]
     fun g (x@(Cross a b)) = test (gasOK 70 a) (g x)
 
-driveMain = solverMain driveF (gasOK 70 (Stop 300)) driveR driveQ
+driveMain mode x = solverMain driveF (gasOK 70 (headT x)) driveR driveQ mode x
 
 -------------------------------------------------
 -- test case
@@ -126,7 +127,7 @@ strings  = [ string1 , string2 ]
 string1 = toT "todai"
 string2 = toT "universityoftokyo"
 
-driveFuns = map driveMain [ FilterNaive,Naive,Greedy,Thinning ]
+driveFuns = map driveMain [ FilterNaive,Naive,Thinning,Greedy ]
 stopss = [ stops1 , stops2 ]
 stops1 = toT $ map Stop [300,260,190,180,170,120,90,50,20,5]
 stops2 = toT $ map Stop [300,260,190,170,120,90,40]
@@ -141,11 +142,9 @@ fff (funs,inputs) =
 
 main :: IO()
 main = do
-  -- fff (knapFuns,itemss)
-  -- fff (llsFuns,strings)
-  -- fff (driveFuns,stopss)
-  (print.fromT) $ maxSet driveR . foldF (mapE driveF . cppF) $ stops2
-  -- (print.fromT) $ foldF (maxSet driveR . driveF) $ stops2
-  (print.fromT) $ maxSet driveQ . foldF (thinSet driveQ . mapE driveF . cppF) $ stops2
-  -- mapM_ (print.fromT) $ filter (gasOK 70 (Stop 300)) $ subsequences stops2
-  -- print.fromT $ maxSet driveR $ filter (gasOK 70 (Stop 300)) $ subsequences stops2
+  fff (knapFuns,itemss)
+  fff (llsFuns,strings)
+  fff (driveFuns,stopss)
+
+
+
