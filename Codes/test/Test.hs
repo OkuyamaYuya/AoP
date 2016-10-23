@@ -10,7 +10,7 @@ data Item = Item { value :: Int , weight :: Int  } deriving (Show,Eq)
 sumBothT :: T Item -> (Int,Int)
 sumBothT = foldF f
   where f One = (0,0)
-        f (Cross a b) = ( value a + fst b , weight a + snd b )
+        f (Cross a (accumVal,accumWt)) = ( value a + accumVal , weight a + accumWt )
 
 sumValT :: T Item -> Int
 sumValT = fst . sumBothT
@@ -33,19 +33,16 @@ knapQ a b = let (va,wa) = sumBothT a
                 wa == wb && va <= vb
 
 
-knapF :: Predicate (T Item) -> Step Item (T Item)
-knapF p = constF (funs1,funs2)
+knapF :: Step Item (T Item)
+knapF = constF (funs1,funs2)
   where
+    p = within 10
     funs1 = [ Just . nil ]
     funs2 = [ Just . outr , test p . cons ]
 -- knapF p One = wrap $ nil One
 -- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
-
 knapMain = solverMain knapF (within 10) knapR knapQ
-knapNaive = knapMain Naive
-knapThinning = knapMain Thinning
-knapGreedy = knapMain Greedy
 
 -------------------------------------------------
 -- Lexicographically Largest Subsequences
@@ -58,8 +55,8 @@ llsR = (<=)
 llsQ :: Order (T Char)
 llsQ = (<=)
 
-llsF :: Ord a => Predicate (T a) -> Step a (T a)
-llsF _ = constF (funs1,funs2)
+llsF :: Ord a => Step a (T a)
+llsF = constF (funs1,funs2)
   where
     funs1 = [ Just . nil ]
     funs2 = [ Just . outr , Just . cons ]
@@ -67,27 +64,69 @@ llsF _ = constF (funs1,funs2)
 -- llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
-llsNaive = llsMain Naive
-llsGreedy = llsMain Greedy
-llsThinning = llsMain Thinning
+
+
+-------------------------------------------------
+-- Driving problem
+-------------------------------------------------
+--
+-- better-local Greedy
+-- local optimality /= global optimality
+--
+-- min R . filter p . Λ (| S |)
+-- can't write simple predicate
+--
+
+data Stop = Stop { pos :: Int } deriving (Show,Eq,Ord)
+
+driveR :: Order (T Stop)
+driveR a b = lengthT a >= lengthT b
+
+driveQ :: Order (T Stop)
+driveQ a b = lengthT a >= lengthT b && doko a <= doko b
+  where 
+    doko :: T Stop -> Int
+    doko (InT One) = 0
+    doko (InT(Cross a b)) = pos a
+
+gasOK :: Int -> Stop -> Predicate (T Stop)
+gasOK full goal = \x -> ( fst (foldF f (cons $ Cross goal x)) <= full)
+  where
+    f :: F Stop (Int,Stop) -> (Int,Stop)
+    f One = (0,Stop 0) -- (maximux distance,previous position)
+    f (Cross cur (maxDist,preStop)) = (max maxDist curDist,cur)
+      where curDist = pos cur - pos preStop
+
+driveF :: Step Stop (T Stop)
+driveF = constF (funs1,funs2)
+  where
+    funs1 = [ Just . nil ]
+    funs2 = [ fun cons , fun outr ]
+    fun g (x@(Cross a b)) = test (gasOK 70 a) (g x)
+
+driveMain = solverMain driveF (gasOK 70 (Stop 300)) driveR driveQ
 
 -------------------------------------------------
 -- test case
 -------------------------------------------------
 
+knapFuns = map knapMain [ Naive,Thinning ]
+itemss    = [ items1 , items2 ]
 items1 = toT [ Item 50 4, Item 3 12, Item 1 1 ,  Item 10 5,
                Item 40 5, Item 30 6, Item 100 2, Item 3 4,
                Item 4 53, Item 4 2 , Item 32 3 , Item 3 2 ]
 items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
-string1 = toT "todai"
-string2 = toT "universityoftokyozzzzzzzz"
 
-
-knap_funs = [ knapNaive , knapThinning , knapGreedy ]
-itemss    = [ items1 , items2 ]
-
-lls_funs = [ llsThinning , llsGreedy ]
+llsFuns = map llsMain [ Thinning,Greedy ]
 strings  = [ string1 , string2 ]
+string1 = toT "todai"
+string2 = toT "universityoftokyo"
+
+driveFuns = map driveMain [ FilterNaive,Naive,Greedy ]
+stopss = [ stops2 ]
+stops1 = toT $ map Stop [300,260,190,180,170,120,90,50,20,5]
+stops2 = toT $ map Stop [300,260,190,170,120,90,40]
+
 
 fff (funs,inputs) =
   mapM_ (print.fromT) $ do
@@ -98,7 +137,10 @@ fff (funs,inputs) =
 
 main :: IO()
 main = do
-  fff (knap_funs,itemss)
-  fff (lls_funs,strings)
-
-
+  -- fff (knapFuns,itemss)
+  -- fff (llsFuns,strings)
+  -- fff (driveFuns,stopss)
+  (print.fromT) $ maxSet driveR . foldF (mapE driveF . cppF) $ stops2
+  (print.fromT) $ foldF (maxSet driveQ . driveF) $ stops2
+  -- mapM_ (print.fromT) $ filter (gasOK 70 (Stop 300)) $ subsequences stops2
+  -- print.fromT $ maxSet driveR $ filter (gasOK 70 (Stop 300)) $ subsequences stops2

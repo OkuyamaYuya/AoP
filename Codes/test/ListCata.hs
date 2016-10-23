@@ -52,7 +52,7 @@ foldF f (InT x) = f (mapF id (foldF f) x)
 
 -- max function on Set
 maxSet :: (a -> a -> Bool) -> Set a -> a
-maxSet r = foldr1 max_r 
+maxSet r = foldr1 max_r
   where max_r a b = if a `r` b then b else a
 
 -- thinning function on Set
@@ -93,6 +93,10 @@ cpr (x,ys) = [ (x,y) | y <- ys ]
 
 split :: (a -> b) -> (a -> c) -> a -> (b,c)
 split f g x = ( f x , g x )
+
+-------------------------------------------------
+headT :: T a -> a
+headT (InT (Cross a b)) = a
 -------------------------------------------------
 sumT :: T Int -> Int
 sumT = foldF plusF
@@ -128,7 +132,7 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- max R . (| thin Q . E S . Λ F ∈  |)
 -- 
 -- greedy
--- (| max R . Λ S |)
+-- (| max Q . Λ S |)
 -- 
 -- S :: F a b -> b
 -- Λ S :: F a b -> Set b
@@ -161,28 +165,36 @@ mapE sF = nub . concat . (mapSet sF)
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 -- = max R . (| thin Q . E S . ΛF ∈ |)
-solverThinning :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> T a -> b
-solverThinning sF p r q = maxSet r . foldF (thinSet q . mapE sF . cppF)
+solverThinning :: Eq b => Step a b -> Order b -> Order b -> T a -> b
+solverThinning sF r q = maxSet r . foldF (thinSet q . mapE sF . cppF)
+
 
 -- (| max R . Λ S  |)
-solverGreedy :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverGreedy sF p r = foldF ( maxSet r . sF )
+solverGreedy :: Eq b => Step a b -> Order b -> T a -> b
+solverGreedy sF q = foldF ( maxSet q . sF )
+
+
+-- max R . (| Λ ( S . F ∈ ) |)
+solverNaive :: Eq b => Step a b -> Order b -> T a -> b
+solverNaive sF r = maxSet r . foldF ( mapE sF . cppF)
+
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 -- = max R . filter p . (| E S . ΛF ∈ ) |)
-solverNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverNaive sF p r = maxSet r . filter p . generator
+solverFilterNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
+solverFilterNaive sF p r = maxSet r . filter p . generator
   where
     generator = foldF ( mapE sF . cppF )
 
-data Mode = Thinning | Greedy | Naive
+data Mode = Thinning | Greedy | FilterNaive | Naive
 
-solverMain :: Eq b => (Predicate b -> Step a b) -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
 solverMain gF p r q mode =
   case mode of
-    Thinning -> solverThinning (gF p) p r q
-    Greedy   -> solverGreedy (gF p) p r
-    Naive    -> solverNaive (gF p) p r
+    Thinning -> solverThinning gF r q
+    Greedy   -> solverGreedy gF q
+    Naive    -> solverNaive gF r
+    FilterNaive    -> solverFilterNaive gF p r
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
