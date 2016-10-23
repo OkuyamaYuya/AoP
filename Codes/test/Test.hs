@@ -36,8 +36,8 @@ knapQ a b = let (va,wa) = sumBothT a
                 wa == wb && va <= vb
 
 
-knapF :: Step Item (T Item)
-knapF = constF (funs1,funs2)
+knapF :: Funs Item (T Item)
+knapF = (funs1,funs2)
   where
     p = within 10
     funs1 = [ Just . nil ]
@@ -58,8 +58,8 @@ llsR = (<=)
 llsQ :: Order (T Char)
 llsQ = (<=)
 
-llsF :: Ord a => Step a (T a)
-llsF = constF (funs1,funs2)
+llsF :: Ord a => Funs a (T a)
+llsF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
     funs2 = [ Just . outr , Just . cons ]
@@ -102,12 +102,12 @@ gasOK full goal = \x -> ( fst (foldF f (cons $ Cross goal x)) <= full)
     f (Cross cur (maxDist,preStop)) = (max maxDist curDist,cur)
       where curDist = pos cur - pos preStop
 
-driveF :: Step Stop (T Stop)
-driveF = constF (funs1,funs2)
+driveF :: Funs Stop (T Stop)
+driveF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
-    funs2 = [ fun cons , fun outr ]
-    fun g (x@(Cross a b)) = test (gasOK 70 a) (g x)
+    funs2 = [ aux cons , aux outr ]
+    aux g (x@(Cross a b)) = test (gasOK 70 a) (g x)
 
 driveMain mode x = solverMain driveF (gasOK 70 (headT x)) driveR driveQ mode x
 

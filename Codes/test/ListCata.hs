@@ -143,15 +143,11 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- preorder on type a
 type Order a = a -> a -> Bool
 
--- (| S |) :: T a -> b
-type Step a b = F a b -> Set b
-
 type Funs a b = ( [F a b -> Maybe b] , [F a b -> Maybe b] )
 
---
--- use constF to define sF
-constF :: Funs a b -> Step a b
-constF funs x =
+-- powerF S = Λ S
+powerF :: Funs a b -> F a b -> Set b
+powerF funs x =
   case x of
     One       -> aux $ fst funs
     Cross _ _ -> aux $ snd funs
@@ -160,48 +156,52 @@ constF funs x =
             maybeToList $ f x
 
 -- Λ ( S . F ∈ ) = E S . Λ F ∈
-mapE :: Eq b => Step a b -> Set(F a b) -> Set b
-mapE sF = nub . concat . (mapSet sF)
 -- nub : O (n^2) time
+mapE :: Eq b => Funs a b -> Set(F a b) -> Set b
+mapE funs set = nub $ aux funs set
+  where
+    aux fs xs = do
+      x <- xs
+      powerF fs x
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 -- = max R . (| thin Q . E S . ΛF ∈ |)
-solverThinning :: Eq b => Step a b -> Order b -> Order b -> T a -> b
-solverThinning sF r q = maxSet r . foldF (thinSet q . mapE sF . cppF)
+solverThinning :: Eq b => Funs a b -> Order b -> Order b -> T a -> b
+solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppF)
 
 
 -- (| max R . Λ S  |)
-solverGreedy :: Eq b => Step a b -> Order b -> T a -> b
-solverGreedy sF q = foldF ( maxSet q . sF )
+solverGreedy :: Eq b => Funs a b -> Order b -> T a -> b
+solverGreedy funs q = foldF ( maxSet q . powerF funs )
 
 
 -- max R . (| Λ ( S . F ∈ ) |)
-solverNaive :: Eq b => Step a b -> Order b -> T a -> b
-solverNaive sF r = maxSet r . foldF ( mapE sF . cppF)
+solverNaive :: Eq b => Funs a b -> Order b -> T a -> b
+solverNaive funs r = maxSet r . foldF ( mapE funs . cppF)
 
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 -- = max R . filter p . (| E S . ΛF ∈ ) |)
-solverFilterNaive :: Eq b => Step a b -> Predicate b -> Order b -> T a -> b
-solverFilterNaive sF p r = maxSet r . filter p . generator
+solverFilterNaive :: Eq b => Funs a b -> Predicate b -> Order b -> T a -> b
+solverFilterNaive funs p r = maxSet r . filter p . generator
   where
-    generator = foldF ( mapE sF . cppF )
+    generator = foldF ( mapE funs . cppF )
 
 data Mode = Thinning | Greedy | FilterNaive | Naive
 
-solverMain :: Eq b => Step a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
-solverMain gF p r q mode =
+solverMain :: Eq b => Funs a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain funs p r q mode =
   case mode of
-    Thinning -> solverThinning gF r q
-    Greedy   -> solverGreedy gF q
-    Naive    -> solverNaive gF r
-    FilterNaive    -> solverFilterNaive gF p r
+    Thinning -> solverThinning funs r q
+    Greedy   -> solverGreedy funs q
+    Naive    -> solverNaive funs r
+    FilterNaive    -> solverFilterNaive funs p r
 -------------------------------------------------
 
 subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF ( mapE sF . cppF )
+subsequences = foldF ( mapE funs . cppF )
   where
-    sF = constF (funs1,funs2)
+    funs = (funs1,funs2)
     funs1 = [ Just . nil ]
     funs2 = [ Just . cons , Just . outr ]
 
@@ -212,9 +212,9 @@ subsequences = foldF ( mapE sF . cppF )
 --     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
 
 inits :: Eq a => T a -> Set (T a)
-inits = foldF ( mapE sF . cppF )
+inits = foldF ( mapE funs . cppF )
   where
-    sF = constF (funs1,funs2)
+    funs = (funs1,funs2)
     funs1 = [ Just . nil ]
     funs2 = [ Just . cons , Just . nil ]
 
