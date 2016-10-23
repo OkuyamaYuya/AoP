@@ -148,6 +148,7 @@ type Step a b = F a b -> Set b
 
 type Funs a b = ( [F a b -> Maybe b] , [F a b -> Maybe b] )
 
+--
 -- use constF to define sF
 constF :: Funs a b -> Step a b
 constF funs x =
