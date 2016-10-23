@@ -95,7 +95,7 @@ driveQ a b = lengthT a >= lengthT b && doko a == doko b
     doko (InT(Cross a b)) = pos a
 
 gasOK :: Int -> Stop -> Predicate (T Stop)
-gasOK full goal = \x -> ( fst (foldF f (cons $ Cross goal x)) <= full)
+gasOK full goal = \x -> (fst (foldF f (cons $ Cross goal x)) <= full)
   where
     f :: F Stop (Int,Stop) -> (Int,Stop)
     f One = (0,Stop 0) -- (maximux distance,previous position)

@@ -117,7 +117,7 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
         aveF (Cross a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
 
--- input : ΛS , R , Q
+-- input : S , R , Q
 -- S = [ f1 , f2 ]
 -- 
 -- filter embedding naive
