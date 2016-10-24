@@ -88,7 +88,7 @@ driveR :: Order (T Stop)
 driveR a b = lengthT a >= lengthT b
 
 driveQ :: Order (T Stop)
-driveQ a b = lengthT a >= lengthT b && doko a == doko b
+driveQ a b = lengthT a >= lengthT b && doko a <= doko b
   where
     doko :: T Stop -> Int
     doko (InT One) = 0
@@ -138,13 +138,33 @@ fff (funs,inputs) =
     input <- inputs
     fun <- funs
     return $ fun input
+
 -------------------------------------------------
+-- debug
+-------------------------------------------------
+
+printArg f x = f (trace (show x) x)
+
+debugGreedy funs q = foldF ( printArg (maxSet q . powerF funs) )
+
+debugThinning funs r q = maxSet r . foldF ( hhh (thinSet q) . mapE funs . cppF )
+  where hhh f x = trace ("--\n"++(show (trans x)++"\n"++(show $ trans (f x)))) (f x)
+        trans = mapSet (map pos.fromT)
+
+-- scanr Thinning
+thinSet' q = scanr step []
+  where step a []     = [a]
+        step a (b:xs) | a `q` b = b : xs
+                      | b `q` a = a : xs
+                      | otherwise = b : step a xs
+
+-------------------------------------------------
+
 
 main :: IO()
 main = do
   fff (knapFuns,itemss)
   fff (llsFuns,strings)
   fff (driveFuns,stopss)
-
 
 
