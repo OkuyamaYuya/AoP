@@ -4,6 +4,19 @@ import ListCata
 import Data.List (union)
 import Debug.Trace
 
+
+-------------------------------------------------
+-- Examples
+-------------------------------------------------
+--
+-- 0-1 knapsack problem
+-- Lexicographically largest subseqences
+-- Midas driving problem
+--
+--
+
+
+
 -------------------------------------------------
 -- 0-1 knapsack problem
 -------------------------------------------------
@@ -50,6 +63,9 @@ knapMain = solverMain knapF (within 10) knapR knapQ
 -------------------------------------------------
 -- Lexicographically Largest Subsequences
 -------------------------------------------------
+--
+-- local criterion = global criterion
+--
 
 -- global criterion
 llsR :: Order (T Char)
@@ -76,12 +92,15 @@ llsMain = solverMain llsF (\x->True) llsR llsQ
 -- better-local Greedy
 -- local optimality /= global optimality
 --
--- Thinning problem when expressed by Catamorphism
---
 -- min R . filter p . Λ (| S |)
--- can't write simple predicate
+-- not simple predicate
 --
-
+-- 次のガソリンスタンドまでの距離を Stop に持たせれば、
+-- Greedy で解ける. この場合、局所順序は遠くまでいっているか
+-- になって、大域順序と異なる.
+--
+-- 以下は、thinning で解いている.
+--
 data Stop = Stop { pos :: Int } deriving (Show,Eq,Ord)
 
 driveR :: Order (T Stop)

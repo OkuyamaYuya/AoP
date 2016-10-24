@@ -3,6 +3,7 @@
 -- Catamorphism
 -------------------------------------------------
 {-# LANGUAGE ExistentialQuantification #-}
+
 module ListCata where
 
 import Data.List (union,nub)
@@ -118,7 +119,7 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -------------------------------------------------
 
 -- input : S , R , Q
--- S = [ f1 , f2 ]
+-- S = [ fs , gs ]
 -- 
 -- filter embedding naive
 --   max R . Λ (| S |)
