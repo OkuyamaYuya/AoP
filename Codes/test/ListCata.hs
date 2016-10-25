@@ -3,11 +3,36 @@
 -- Catamorphism
 -------------------------------------------------
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TypeOperators #-}
 
 module ListCata where
 
 import Data.List (union,nub)
 import Data.Maybe (maybeToList)
+
+
+-- data L a f = In (f a (L a f))
+-- data Nil a b  = Nil
+-- data Cons a b = Cons a b
+-- data (f :+: g) a b = Inl (f a b) | Inr (g a b)
+--
+-- instance Functor (Nil a) where
+--   fmap f Nil = Nil
+--
+-- instance Functor (Cons a) where
+--   fmap f (Cons x y) = Cons x (f y)
+--
+-- instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
+--   fmap f (Inl x) = Inl (fmap f x)
+--   fmap f (Inr x) = Inr (fmap f x)
+--
+-- foldList f (In t) = f ( fmap (foldList f) t)
+--
+-- xxx :: L Int (Nil :+: Cons)
+-- xxx = In $ Inr $ Cons 1 (In $ Inl Nil)
+-- yyy = foldList plusF xxx
+--   where plusF (Inl Nil) = 0
+--         plusF (Inr (Cons a b)) = a + b
 
 data F a b = One | Cross a b deriving (Show,Eq,Ord)
 
