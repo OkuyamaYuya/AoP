@@ -23,33 +23,33 @@ import Debug.Trace
 
 data Item = Item { value :: Int , weight :: Int  } deriving (Show,Eq)
 
-sumBothT :: T Item -> (Int,Int)
-sumBothT = foldF f
-  where f One = (0,0)
-        f (Cross a (accumVal,accumWt)) = ( value a + accumVal , weight a + accumWt )
+sumBoth :: List Item -> (Int,Int)
+sumBoth = foldF f
+  where f (Inl Nil) = (0,0)
+        f (Inr (Cons a (accumVal,accumWt))) = ( value a + accumVal , weight a + accumWt )
 
-sumValT :: T Item -> Int
-sumValT = fst . sumBothT
+sumVal :: List Item -> Int
+sumVal = fst . sumBoth
 
-sumWtT :: T Item -> Int
-sumWtT = snd . sumBothT
+sumWt :: List Item -> Int
+sumWt = snd . sumBoth
 
 -- predicate
-within :: Int -> Predicate (T Item)
-within w = \x -> (sumWtT x <= w)
+within :: Int -> Predicate (List Item)
+within w = \x -> (sumWt x <= w)
 
 -- global criterion
-knapR :: T Item -> T Item -> Bool
-knapR a b = sumValT a <= sumValT b
+knapR :: List Item -> List Item -> Bool
+knapR a b = sumVal a <= sumVal b
 
 -- local criterion
-knapQ :: T Item -> T Item -> Bool
-knapQ a b = let (va,wa) = sumBothT a
-                (vb,wb) = sumBothT b in
+knapQ :: List Item -> List Item -> Bool
+knapQ a b = let (va,wa) = sumBoth a
+                (vb,wb) = sumBoth b in
                 wa == wb && va <= vb
 
 
-knapF :: Funs Item (T Item)
+knapF :: Funs Item (List Item)
 knapF = (funs1,funs2)
   where
     p = within 10
@@ -68,13 +68,13 @@ knapMain = solverMain knapF (within 10) knapR knapQ
 --
 
 -- global criterion
-llsR :: Order (T Char)
+llsR :: Order (List Char)
 llsR = (<=)
 -- local criterion
-llsQ :: Order (T Char)
+llsQ :: Order (List Char)
 llsQ = (<=)
 
-llsF :: Ord a => Funs a (T a)
+llsF :: Ord a => Funs a (List a)
 llsF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
@@ -101,34 +101,36 @@ llsMain = solverMain llsF (\x->True) llsR llsQ
 --
 -- 以下は、thinning で解いている.
 --
+
+
+
 data Stop = Stop { pos :: Int } deriving (Show,Eq,Ord)
 
-driveR :: Order (T Stop)
-driveR a b = lengthT a >= lengthT b
+driveR :: Order (List Stop)
+driveR a b = lengthL a >= lengthL b
 
-driveQ :: Order (T Stop)
-driveQ a b = lengthT a >= lengthT b && doko a <= doko b
+driveQ :: Order (List Stop)
+driveQ a b = lengthL a >= lengthL b && doko a <= doko b
   where
-    doko :: T Stop -> Int
-    doko (InT One) = 0
-    doko (InT(Cross a b)) = pos a
+    doko :: List Stop -> Int
+    doko (In (Inl Nil)) = 0
+    doko (In (Inr (Cons a b))) = pos a
 
-gasOK :: Int -> Stop -> Predicate (T Stop)
-gasOK full goal = \x -> (fst (foldF f (cons $ Cross goal x)) <= full)
+gasOK :: Int -> Stop -> Predicate (List Stop)
+gasOK full goal = \x -> (fst (foldF f (cons $ Inr (Cons goal x))) <= full)
   where
-    f :: F Stop (Int,Stop) -> (Int,Stop)
-    f One = (0,Stop 0) -- (maximux distance,previous position)
-    f (Cross cur (maxDist,preStop)) = (max maxDist curDist,cur)
+    f (Inl Nil) = (0,Stop 0) -- (maximux distance,previous position)
+    f (Inr (Cons cur (maxDist,preStop))) = (max maxDist curDist,cur)
       where curDist = pos cur - pos preStop
 
-driveF :: Funs Stop (T Stop)
+driveF :: Funs Stop (List Stop)
 driveF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
     funs2 = [ aux cons , aux outr ]
-    aux g (x@(Cross a b)) = test (gasOK 70 a) (g x)
+    aux g (x@(Inr (Cons a b))) = test (gasOK 70 a) (g x)
 
-driveMain mode x = solverMain driveF (gasOK 70 (headT x)) driveR driveQ mode x
+driveMain mode x = solverMain driveF (gasOK 70 (headL x)) driveR driveQ mode x
 
 -------------------------------------------------
 -- test case
@@ -136,24 +138,24 @@ driveMain mode x = solverMain driveF (gasOK 70 (headT x)) driveR driveQ mode x
 
 knapFuns = map knapMain [ Naive,Thinning ]
 itemss    = [ items1 , items2 ]
-items1 = toT [ Item 50 4, Item 3 12, Item 1 1 ,  Item 10 5,
+items1 = toList [ Item 50 4, Item 3 12, Item 1 1 ,  Item 10 5,
                Item 40 5, Item 30 6, Item 100 2, Item 3 4,
                Item 4 53, Item 4 2 , Item 32 3 , Item 3 2 ]
-items2 = toT [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
+items2 = toList [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 
 llsFuns = map llsMain [ Thinning,Greedy ]
 strings  = [ string1 , string2 ]
-string1 = toT "todai"
-string2 = toT "universityoftokyo"
+string1 = toList "todai"
+string2 = toList "universityoftokyo"
 
 driveFuns = map driveMain [ FilterNaive,Naive,Thinning,Greedy ]
 stopss = [ stops1 , stops2 ]
-stops1 = toT $ map Stop [300,260,190,180,170,120,90,50,20,5]
-stops2 = toT $ map Stop [300,260,190,170,120,90,40]
+stops1 = toList $ map Stop [300,260,190,180,170,120,90,50,20,5]
+stops2 = toList $ map Stop [300,260,190,170,120,90,40]
 
 
 fff (funs,inputs) =
-  mapM_ (print.fromT) $ do
+  mapM_ (print.fromList) $ do
     input <- inputs
     fun <- funs
     return $ fun input
@@ -166,9 +168,9 @@ printArg f x = f (trace (show x) x)
 
 debugGreedy funs q = foldF ( printArg (maxSet q . powerF funs) )
 
-debugThinning funs r q = maxSet r . foldF ( hhh (thinSet q) . mapE funs . cppF )
+debugThinning funs r q = maxSet r . foldF ( hhh (thinSet q) . mapE funs . cppL )
   where hhh f x = trace ("--\n"++(show (trans x)++"\n"++(show $ trans (f x)))) (f x)
-        trans = mapSet (map pos.fromT)
+        trans = mapSet (map pos.fromList)
 
 -- scanr Thinning
 thinSet' q = scanr step []

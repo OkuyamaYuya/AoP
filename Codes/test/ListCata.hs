@@ -14,13 +14,14 @@ import Data.Maybe (maybeToList)
 
 data M f a = In (f a (M f a))
 
-data (f :+: g) a b = Inl (f a b) | Inr (g a b) deriving Eq
+data (f :+: g) a b = Inl (f a b) | Inr (g a b) deriving (Eq,Ord)
 
 instance (Show a,Render f) => Show (M f a) where
   show = pretty
 
 instance (Eq a,Eq2 f) => Eq (M f a) where
   (==) = (=:=)
+
 
 instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
   fmap f (Inl x) = Inl (fmap f x)
@@ -46,16 +47,28 @@ class Eq2 f where
 instance (Eq2 f,Eq2 g) => Eq2 (f :+: g) where
   (Inl x) `eq2` (Inl y) = x `eq2` y
   (Inr x) `eq2` (Inr y) = x `eq2` y
+  (Inl x) `eq2` (Inr y) = False
+  (Inr x) `eq2` (Inl y) = False
 
 (=:=) :: (Eq a,Eq2 f) => (M f a) -> (M f a) -> Bool
 (=:=) (In x) (In y) = x `eq2` y
 
+class Eq2 f => Ord2 f where
+  compare2 :: (Ord a,Ord2 g) => (f a (M g a)) -> (f a (M g a)) -> Ordering
+
+(<=:) x y = case (compare2' x y) of
+  GT -> True
+  EQ -> True
+  LT -> False
+
+compare2' :: (Ord a,Ord2 f) => (M f a) -> (M f a) -> Ordering
+compare2' (In x) (In y) = compare2 x y
 -------------------------------------------------
 -- cons List
 -------------------------------------------------
 
-data Nil a b  = Nil deriving (Show,Eq)
-data Cons a b = Cons a b deriving (Show,Eq)
+data Nil a b  = Nil deriving (Show,Eq,Ord)
+data Cons a b = Cons a b deriving (Show,Eq,Ord)
 
 instance Functor (Nil a) where
   fmap f Nil = Nil
@@ -71,6 +84,14 @@ instance Eq2 Nil where
   Nil `eq2` Nil = True
 instance Eq2 Cons where
   (Cons x xs) `eq2` (Cons y ys) = x == y && xs =:= ys
+
+instance Ord2 Nil where
+  compare2  Nil Nil = EQ
+
+instance Ord2 Cons where
+  compare2 (Cons x xs) (Cons y ys)
+    | (Cons x xs) == (Cons y ys) = EQ
+    | otherwise = compare2' xs ys
 
 type L = Nil :+: Cons
 type List a = M L a
@@ -221,54 +242,53 @@ solverMain funs p r q mode =
     FilterNaive    -> solverFilterNaive funs p r
 -------------------------------------------------
 
--- type Funs a b = ( [L a b -> Maybe b] , [L a b -> Maybe b] )
 
 out (In x) = x
 nil _ = In (Inl Nil)
 cons x = In x
+outl (Inr (Cons a b)) = a
 outr (Inr (Cons a b)) = b
+headL = outl.out
 
-sumList :: List Int -> Int
-sumList = foldF plusF
+
+sumL :: List Int -> Int
+sumL = foldF plusF
   where plusF (Inl Nil) = 0
         plusF (Inr (Cons a b)) = a + b
 
--- subsequences :: Eq a => List a -> Set (List a)
--- subsequences = foldF ( mapE funs . cppL )
---   where
---     funs = (funs1,funs2)
---     funs1 = [ Just . nil ]
---     funs2 = [ Just . cons , Just . outr ]
 
--- subsequences' :: Eq a => T a -> Set (T a)
--- subsequences' = foldF sbsqF
---   where
---     sbsqF One = wrap $ nil One
---     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
---
--- inits :: Eq a => T a -> Set (T a)
--- inits = foldF ( mapE funs . cppF )
---   where
---     funs = (funs1,funs2)
---     funs1 = [ Just . nil ]
---     funs2 = [ Just . cons , Just . nil ]
---
--- inits' :: Eq a => T a -> Set (T a)
--- inits' = foldF initF
---   where
---    initF One = wrap $ nil One
---    initF (Cross a xss) = (wrap $ nil One) `union` (map (cons . (Cross a)) xss)
---
--- tails' :: T a -> Set (T a)
--- tails' = foldF tailF
---   where tailF One = wrap $ nil One
---         tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
---
--- segments :: Eq a => T a -> Set (T a)
--- segments (InT One) = wrap $ nil One
--- segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
+lengthL :: List a -> Int
+lengthL = foldF plusF
+  where plusF (Inl Nil) = 0
+        plusF (Inr (Cons a b)) = 1 + b
+
+
+-------------------------------------------------
+
+subsequences :: Eq a => List a -> Set (List a)
+subsequences = foldF ( mapE funs . cppL )
+  where
+    funs = (funs1,funs2)
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . cons , Just . outr ]
+
+inits :: Eq a => List a -> Set (List a)
+inits = foldF ( mapE funs . cppL )
+  where
+    funs = (funs1,funs2)
+    funs1 = [ Just . nil ]
+    funs2 = [ Just . cons , Just . nil ]
+
+tails' :: List a -> Set (List a)
+tails' = foldF tailF
+  where tailF (Inl Nil) = wrap $ In (Inl Nil)
+        tailF (Inr (Cons a (x:xs))) = (In (Inr (Cons a x))) : x : xs
+
+segments :: Eq a => List a -> Set (List a)
+segments (In (Inl Nil)) = wrap $ nil ()
+segments (a@(In (Inr (Cons x xs)))) = inits a `union` (segments xs)
 -------------------------------------------------
 
 main = do
   print $ toList [1..10]
-
+  -- print $ (outr.out $ toList [1..10]) < (outr.out $ toList [1..10])
