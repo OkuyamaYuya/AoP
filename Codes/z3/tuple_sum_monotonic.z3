@@ -5,15 +5,14 @@
 
 ; pair-plus
 ; example => (1,2) + (4,2) = (5,4)
-(define-fun pair-plus ( (x (Pair Int Int))  (y (Pair Int Int)) ) (Pair Int Int)
-  (mk-pair (+ (first x) (first y)) (+ (second x) (second y)) )
-)
+(define-fun pair-plus ((x (Pair Int Int)) (y (Pair Int Int))) (Pair Int Int)
+  (mk-pair (+ (first x) (first y)) (+ (second x) (second y))))
 
 ; pair-sum :: [(a,b)] -> (a,b)
 (declare-fun pair-sum ((List (Pair Int Int))) (Pair Int Int))
 (assert (forall ((xs (List (Pair Int Int))))
           (ite (= nil xs)
-               (= (mk-pair 0 0)                 (pair-sum xs))
+               (= (mk-pair 0 0)                              (pair-sum xs))
                (= (pair-plus (head xs) (pair-sum (tail xs))) (pair-sum xs)))))
 
 ; (a,x) `r` (b,y) = sum a >= sum b && sum x == sum y
@@ -27,8 +26,4 @@
 (assert (not (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))
           (implies (r xs ys) (r (insert a xs) (insert a ys))))))
 (check-sat)
-
-;(assert (not (forall ((xs (List Int)) (ys (List Int)) (a Int))
-;          (implies (>= (sum xs) (sum ys)) (>= (sum (insert a xs)) (sum (insert a ys)))))))
-;(check-sat)
 
