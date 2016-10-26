@@ -40,9 +40,9 @@ instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
   fmap f (Inl x) = Inl (fmap f x)
   fmap f (Inr x) = Inr (fmap f x)
 
--- instance (Show (f a b),Show (g a b)) => Show ((f :+: g) a b) where
---   show (Inl x) = "Inl " ++ show x
---   show (Inr x) = "Inr " ++ show x
+instance (Show (f a b),Show (g a b)) => Show ((f :+: g) a b) where
+  show (Inl x) = "Inl " ++ show x
+  show (Inr x) = "Inr " ++ show x
 
 -------------------------------------------------
 
@@ -75,33 +75,33 @@ instance (Ord2 f,Ord2 g) => Ord2 (f :+: g) where
 -- cons List
 -------------------------------------------------
 
-data Nil a b  = Nil deriving (Show,Eq,Ord)
-data Cons a b = Cons a b deriving (Show,Eq,Ord)
+data One a b  = One deriving (Show,Eq,Ord)
+data Cross a b = Cross a b deriving (Show,Eq,Ord)
 
-instance Functor (Nil a) where
-  fmap f Nil = Nil
-instance Functor (Cons a) where
-  fmap f (Cons x y) = Cons x (f y)
+instance Functor (One a) where
+  fmap f One = One
+instance Functor (Cross a) where
+  fmap f (Cross x y) = Cross x (f y)
 
-instance Show2 Nil where
-  show2 Nil = "[]"
-instance Show2 Cons where
-  show2 (Cons x xs) = show x ++ ":" ++ show2' xs
+instance Show2 One where
+  show2 One = "[]"
+instance Show2 Cross where
+  show2 (Cross x xs) = show x ++ ":" ++ show2' xs
     where
       show2' (In x) = show2 x
 
-instance Eq2 Nil where
-  Nil `eq2` Nil = True
-instance Eq2 Cons where
-  (Cons x xs) `eq2` (Cons y ys) = x == y && xs `eq2'` ys
+instance Eq2 One where
+  One `eq2` One = True
+instance Eq2 Cross where
+  (Cross x xs) `eq2` (Cross y ys) = x == y && xs `eq2'` ys
     where
       eq2' (In x) (In y) = x `eq2` y
 
-instance Ord2 Nil where
-  compare2 Nil Nil = EQ
+instance Ord2 One where
+  compare2 One One = EQ
 
-instance Ord2 Cons where
-  compare2 (Cons x xs) (Cons y ys) =
+instance Ord2 Cross where
+  compare2 (Cross x xs) (Cross y ys) =
     case (compare x y) of
       GT -> GT
       LT -> LT
@@ -109,7 +109,7 @@ instance Ord2 Cons where
         where 
           compare2' (In a) (In b) = compare2 a b
 
-type L = Nil :+: Cons
+type L = One :+: Cross
 type List a = M L a
 
 -------------------------------------------------
@@ -118,12 +118,12 @@ foldF :: Functor (f a) => (f a b -> b) -> (M f a) -> b
 foldF f (In x) = f ( fmap (foldF f) x )
 
 toList :: [a] -> List a
-toList [] = In (Inl Nil)
-toList (x:xs) = In (Inr (Cons x (toList xs)))
+toList [] = In (Inl One)
+toList (x:xs) = In (Inr (Cross x (toList xs)))
 
 fromList :: List a -> [a]
-fromList (In (Inl Nil)) = []
-fromList (In (Inr (Cons x xs))) = x : fromList xs
+fromList (In (Inl One)) = []
+fromList (In (Inr (Cross x xs))) = x : fromList xs
 
 -- Set
 type Set a = [a]
@@ -155,8 +155,8 @@ wrap x = [x]
 
 -- F ∈
 cppL :: L a (Set b) -> Set (L a b)
-cppL (Inl Nil) = wrap $ Inl Nil
-cppL (Inr (Cons x ys)) = [ Inr (Cons x y) | y <- ys ]
+cppL (Inl One) = wrap $ Inl One
+cppL (Inr (Cross x ys)) = [ Inr (Cross x y) | y <- ys ]
 
 -------------------------------------------------
 
@@ -166,44 +166,8 @@ merge r (xs,[]) = xs
 merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
                     | otherwise = b : merge r (a:xs,ys)
 
-cpp :: (Set a,Set b) -> Set(a,b)
-cpp (xs,ys) = [ (x,y) | x <- xs , y <- ys ]
-
-cpr :: (a,Set b) -> Set(a,b)
-cpr (x,ys) = [ (x,y) | y <- ys ]
-
-split :: (a -> b) -> (a -> c) -> a -> (b,c)
-split f g x = ( f x , g x )
-
--------------------------------------------------
-
--- input : S , R , Q
--- S = [ fs , gs ]
--- 
--- filter embedding naive
---   max R . Λ (| S |)
--- = max R . (| Λ ( S . F ∈ ) |)
--- = max R . (| E S . Λ F ∈   |)
--- 
--- filter naive
--- max R . filter p . (| E S . Λ F ∈ |)
---
--- thinning
--- max R . (| thin Q . E S . Λ F ∈  |)
--- 
--- greedy
--- (| max Q . Λ S |)
--- 
--- S :: F a b -> b
--- Λ S :: F a b -> Set b
--- (| S |) :: T a -> b
--- Λ ( S . F ∈ ) :: F a (Set b) -> Set b
-
-
--- preorder on type a
 type Order a = a -> a -> Bool
-
-type Funs a b = ( [L a b -> Maybe b] , [L a b -> Maybe b] )
+type Funs a b = ([L a b -> Maybe b],[L a b -> Maybe b])
 
 -- powerF S = Λ S
 powerF :: Funs a b -> L a b -> Set b
@@ -258,25 +222,25 @@ solverMain funs p r q mode =
     FilterNaive    -> solverFilterNaive funs p r
 -------------------------------------------------
 
-
+out :: (M f a) -> f a (M f a)
 out (In x) = x
-nil _ = In (Inl Nil)
-cons x = In x
-outl (Inr (Cons a b)) = a
-outr (Inr (Cons a b)) = b
+nil _ = In (Inl One)
+cons (Inr x) = In (Inr x)
+outl (Inr (Cross a b)) = a
+outr (Inr (Cross a b)) = b
 headL = outl.out
 
 
 sumL :: List Int -> Int
 sumL = foldF plusF
-  where plusF (Inl Nil) = 0
-        plusF (Inr (Cons a b)) = a + b
+  where plusF (Inl One) = 0
+        plusF (Inr (Cross a b)) = a + b
 
 
 lengthL :: List a -> Int
 lengthL = foldF plusF
-  where plusF (Inl Nil) = 0
-        plusF (Inr (Cons a b)) = 1 + b
+  where plusF (Inl One) = 0
+        plusF (Inr (Cross a b)) = 1 + b
 
 
 -------------------------------------------------
@@ -297,10 +261,11 @@ inits = foldF ( mapE funs . cppL )
 
 tails' :: List a -> Set (List a)
 tails' = foldF tailF
-  where tailF (Inl Nil) = wrap $ In (Inl Nil)
-        tailF (Inr (Cons a (x:xs))) = (In (Inr (Cons a x))) : x : xs
+  where tailF (Inl One) = wrap $ In (Inl One)
+        tailF (Inr (Cross a (x:xs))) = (In (Inr (Cross a x))) : x : xs
 
 segments :: Eq a => List a -> Set (List a)
-segments (In (Inl Nil)) = wrap $ nil ()
-segments (a@(In (Inr (Cons x xs)))) = inits a `union` (segments xs)
+segments (In (Inl One)) = wrap $ nil ()
+segments (a@(In (Inr (Cross x xs)))) = inits a `union` (segments xs)
 -------------------------------------------------
+

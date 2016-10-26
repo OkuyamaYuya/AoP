@@ -28,8 +28,8 @@ data Item = Item { value :: Int , weight :: Int  } deriving (Show,Eq)
 
 sumBoth :: List Item -> (Int,Int)
 sumBoth = foldF f
-  where f (Inl Nil) = (0,0)
-        f (Inr (Cons a (accumVal,accumWt))) = ( value a + accumVal , weight a + accumWt )
+  where f (Inl One) = (0,0)
+        f (Inr (Cross a (accumVal,accumWt))) = ( value a + accumVal , weight a + accumWt )
 
 sumVal :: List Item -> Int
 sumVal = fst . sumBoth
@@ -116,14 +116,14 @@ driveQ :: Order (List Stop)
 driveQ a b = lengthL a >= lengthL b && doko a <= doko b
   where
     doko :: List Stop -> Int
-    doko (In (Inl Nil)) = 0
-    doko (In (Inr (Cons a b))) = pos a
+    doko (In (Inl One)) = 0
+    doko (In (Inr (Cross a b))) = pos a
 
 gasOK :: Int -> Stop -> Predicate (List Stop)
-gasOK full goal = \x -> (fst (foldF f (cons $ Inr (Cons goal x))) <= full)
+gasOK full goal = \x -> (fst (foldF f (cons $ Inr (Cross goal x))) <= full)
   where
-    f (Inl Nil) = (0,Stop 0) -- (maximux distance,previous position)
-    f (Inr (Cons cur (maxDist,preStop))) = (max maxDist curDist,cur)
+    f (Inl One) = (0,Stop 0) -- (maximux distance,previous position)
+    f (Inr (Cross cur (maxDist,preStop))) = (max maxDist curDist,cur)
       where curDist = pos cur - pos preStop
 
 driveF :: Funs Stop (List Stop)
@@ -131,7 +131,7 @@ driveF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
     funs2 = [ aux cons , aux outr ]
-    aux g (x@(Inr (Cons a b))) = test (gasOK 70 a) (g x)
+    aux g (x@(Inr (Cross a b))) = test (gasOK 70 a) (g x)
 
 driveMain mode x = solverMain driveF (gasOK 70 (headL x)) driveR driveQ mode x
 
