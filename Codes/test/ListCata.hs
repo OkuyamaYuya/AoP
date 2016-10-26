@@ -40,9 +40,9 @@ instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
   fmap f (Inl x) = Inl (fmap f x)
   fmap f (Inr x) = Inr (fmap f x)
 
-instance (Show (f a b),Show (g a b)) => Show ((f :+: g) a b) where
-  show (Inl x) = "Inl " ++ show x
-  show (Inr x) = "Inr " ++ show x
+-- instance (Show (f a b),Show (g a b)) => Show ((f :+: g) a b) where
+--   show (Inl x) = "Inl " ++ show x
+--   show (Inr x) = "Inr " ++ show x
 
 -------------------------------------------------
 
@@ -161,7 +161,9 @@ cppL (Inr (Cross x ys)) = [ Inr (Cross x y) | y <- ys ]
 -------------------------------------------------
 
 type Order a = a -> a -> Bool
-type Funs a b = ([L a b -> Maybe b],[L a b -> Maybe b])
+type MaybeFalg a b = L a b -> Maybe b
+type Funs a b = ([MaybeFalg a b],[MaybeFalg a b])
+
 
 -- powerF S = Λ S
 powerF :: Funs a b -> L a b -> Set b
@@ -268,6 +270,5 @@ merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
                     | otherwise = b : merge r (a:xs,ys)
 
 -------------------------------------------------
-
 
 
