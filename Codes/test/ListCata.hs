@@ -164,7 +164,6 @@ type Order a = a -> a -> Bool
 type MaybeFalg a b = L a b -> Maybe b
 type Funs a b = ([MaybeFalg a b],[MaybeFalg a b])
 
-
 -- powerF S = Λ S
 powerF :: Funs a b -> L a b -> Set b
 powerF funs x =
@@ -189,16 +188,13 @@ mapE funs set = nub $ aux funs set
 solverThinning :: Eq b => Funs a b -> Order b -> Order b -> List a -> b
 solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppL)
 
-
 -- (| max R . Λ S  |)
 solverGreedy :: Eq b => Funs a b -> Order b -> List a -> b
 solverGreedy funs q = foldF ( maxSet q . powerF funs )
 
-
 -- max R . (| Λ ( S . F ∈ ) |)
 solverNaive :: Eq b => Funs a b -> Order b -> List a -> b
 solverNaive funs r = maxSet r . foldF ( mapE funs . cppL)
-
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 -- = max R . filter p . (| E S . ΛF ∈ ) |)
@@ -216,6 +212,7 @@ solverMain funs p r q mode =
     Greedy   -> solverGreedy funs q
     Naive    -> solverNaive funs r
     FilterNaive    -> solverFilterNaive funs p r
+
 -------------------------------------------------
 
 out (In x) = x
@@ -270,5 +267,4 @@ merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
                     | otherwise = b : merge r (a:xs,ys)
 
 -------------------------------------------------
-
 
