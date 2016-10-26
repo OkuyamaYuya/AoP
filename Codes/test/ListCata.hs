@@ -3,8 +3,7 @@
 -- Catamorphism
 -------------------------------------------------
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TypeOperators,FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators,FlexibleContexts,ConstrainedClassMethods #-}
 
 module ListCata where
 
@@ -15,7 +14,13 @@ import Data.Maybe (maybeToList)
 
 data M f a = In (f a (M f a))
 
-data (f :+: g) a b = Inl (f a b) | Inr (g a b)
+data (f :+: g) a b = Inl (f a b) | Inr (g a b) deriving Eq
+
+instance (Show a,Render f) => Show (M f a) where
+  show = pretty
+
+instance (Eq a,Eq2 f) => Eq (M f a) where
+  (==) = (=:=)
 
 instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
   fmap f (Inl x) = Inl (fmap f x)
@@ -35,8 +40,15 @@ instance (Render f,Render g) => Render (f :+: g) where
 pretty :: (Show a,Render f) => (M f a) -> String
 pretty (In x) = render x
 
-prettyPrint :: (Show a,Render f) => (M f a) -> IO()
-prettyPrint = print.pretty
+class Eq2 f where
+  eq2 :: (Eq a,Eq2 g) => (f a (M g a)) -> (f a (M g a)) -> Bool
+
+instance (Eq2 f,Eq2 g) => Eq2 (f :+: g) where
+  (Inl x) `eq2` (Inl y) = x `eq2` y
+  (Inr x) `eq2` (Inr y) = x `eq2` y
+
+(=:=) :: (Eq a,Eq2 f) => (M f a) -> (M f a) -> Bool
+(=:=) (In x) (In y) = x `eq2` y
 
 -------------------------------------------------
 -- cons List
@@ -54,6 +66,11 @@ instance Render Nil where
   render Nil = "[]"
 instance Render Cons where
   render (Cons x xs) = show x ++ ":" ++ pretty xs
+
+instance Eq2 Nil where
+  Nil `eq2` Nil = True
+instance Eq2 Cons where
+  (Cons x xs) `eq2` (Cons y ys) = x == y && xs =:= ys
 
 type L = Nil :+: Cons
 type List a = M L a
@@ -205,10 +222,16 @@ solverMain funs p r q mode =
 -------------------------------------------------
 
 -- type Funs a b = ( [L a b -> Maybe b] , [L a b -> Maybe b] )
+
 out (In x) = x
 nil _ = In (Inl Nil)
 cons x = In x
 outr (Inr (Cons a b)) = b
+
+sumList :: List Int -> Int
+sumList = foldF plusF
+  where plusF (Inl Nil) = 0
+        plusF (Inr (Cons a b)) = a + b
 
 -- subsequences :: Eq a => List a -> Set (List a)
 -- subsequences = foldF ( mapE funs . cppL )
@@ -246,11 +269,6 @@ outr (Inr (Cons a b)) = b
 -- segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
 
-sumList = foldF plusF
-  where plusF (Inl Nil) = 0
-        plusF (Inr (Cons a b)) = a + b
-
-
 main = do
-  print $ sumList $ toList [1..10]
+  print $ toList [1..10]
 
