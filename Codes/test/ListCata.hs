@@ -160,12 +160,6 @@ cppL (Inr (Cross x ys)) = [ Inr (Cross x y) | y <- ys ]
 
 -------------------------------------------------
 
-merge :: (a -> a -> Bool) -> (Set a,Set a) -> Set a
-merge r ([],ys) = ys
-merge r (xs,[]) = xs
-merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
-                    | otherwise = b : merge r (a:xs,ys)
-
 type Order a = a -> a -> Bool
 type Funs a b = ([L a b -> Maybe b],[L a b -> Maybe b])
 
@@ -222,14 +216,12 @@ solverMain funs p r q mode =
     FilterNaive    -> solverFilterNaive funs p r
 -------------------------------------------------
 
-out :: (M f a) -> f a (M f a)
 out (In x) = x
-nil _ = In (Inl One)
+nil x = In (Inl One)
 cons (Inr x) = In (Inr x)
-outl (Inr (Cross a b)) = a
-outr (Inr (Cross a b)) = b
+outl (Inr (Cross x y)) = x
+outr (Inr (Cross x y)) = y
 headL = outl.out
-
 
 sumL :: List Int -> Int
 sumL = foldF plusF
@@ -241,7 +233,6 @@ lengthL :: List a -> Int
 lengthL = foldF plusF
   where plusF (Inl One) = 0
         plusF (Inr (Cross a b)) = 1 + b
-
 
 -------------------------------------------------
 
@@ -265,7 +256,18 @@ tails' = foldF tailF
         tailF (Inr (Cross a (x:xs))) = (In (Inr (Cross a x))) : x : xs
 
 segments :: Eq a => List a -> Set (List a)
-segments (In (Inl One)) = wrap $ nil ()
+segments (In (Inl One)) = wrap $ In (Inl One)
 segments (a@(In (Inr (Cross x xs)))) = inits a `union` (segments xs)
+
 -------------------------------------------------
+
+merge :: (a -> a -> Bool) -> (Set a,Set a) -> Set a
+merge r ([],ys) = ys
+merge r (xs,[]) = xs
+merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
+                    | otherwise = b : merge r (a:xs,ys)
+
+-------------------------------------------------
+
+
 
