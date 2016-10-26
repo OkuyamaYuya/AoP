@@ -3,78 +3,79 @@
 -- Catamorphism
 -------------------------------------------------
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators,FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module ListCata where
 
 import Data.List (union,nub)
 import Data.Maybe (maybeToList)
 
+-------------------------------------------------
 
--- data L a f = In (f a (L a f))
--- data Nil a b  = Nil
--- data Cons a b = Cons a b
--- data (f :+: g) a b = Inl (f a b) | Inr (g a b)
---
--- instance Functor (Nil a) where
---   fmap f Nil = Nil
---
--- instance Functor (Cons a) where
---   fmap f (Cons x y) = Cons x (f y)
---
--- instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
---   fmap f (Inl x) = Inl (fmap f x)
---   fmap f (Inr x) = Inr (fmap f x)
---
--- foldList f (In t) = f ( fmap (foldList f) t)
---
--- xxx :: L Int (Nil :+: Cons)
--- xxx = In $ Inr $ Cons 1 (In $ Inl Nil)
--- yyy = foldList plusF xxx
---   where plusF (Inl Nil) = 0
---         plusF (Inr (Cons a b)) = a + b
+data M f a = In (f a (M f a))
 
-data F a b = One | Cross a b deriving (Show,Eq,Ord)
+data (f :+: g) a b = Inl (f a b) | Inr (g a b)
 
-newtype T a = InT (F a (T a)) deriving (Show,Eq,Ord)
+instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
+  fmap f (Inl x) = Inl (fmap f x)
+  fmap f (Inr x) = Inr (fmap f x)
 
-nil :: F a (T a) -> T a
-nil _ = InT One
+instance (Show (f a b),Show (g a b)) => Show ((f :+: g) a b) where
+  show (Inl x) = "Inl " ++ show x
+  show (Inr x) = "Inr " ++ show x
 
-cons :: F a (T a) -> T a
-cons (Cross a b) = InT (Cross a b)
+class Render f where
+  render :: (Show a,Render g) => (f a (M g a)) -> String
 
-outl :: F a b -> a
-outl (Cross a b) = a
+instance (Render f,Render g) => Render (f :+: g) where
+  render (Inl x) = render x
+  render (Inr x) = render x
 
-outr :: F a b -> b
-outr (Cross a b) = b
+pretty :: (Show a,Render f) => (M f a) -> String
+pretty (In x) = render x
+
+prettyPrint :: (Show a,Render f) => (M f a) -> IO()
+prettyPrint = print.pretty
+
+-------------------------------------------------
+-- cons List
+-------------------------------------------------
+
+data Nil a b  = Nil deriving (Show,Eq)
+data Cons a b = Cons a b deriving (Show,Eq)
+
+instance Functor (Nil a) where
+  fmap f Nil = Nil
+instance Functor (Cons a) where
+  fmap f (Cons x y) = Cons x (f y)
+
+instance Render Nil where
+  render Nil = "[]"
+instance Render Cons where
+  render (Cons x xs) = show x ++ ":" ++ pretty xs
+
+type L = Nil :+: Cons
+type List a = M L a
+
+-------------------------------------------------
+
+foldF :: Functor (f a) => (f a b -> b) -> (M f a) -> b
+foldF f (In x) = f ( fmap (foldF f) x )
+
+toList :: [a] -> List a
+toList [] = In (Inl Nil)
+toList (x:xs) = In (Inr (Cons x (toList xs)))
+
+fromList :: List a -> [a]
+fromList (In (Inl Nil)) = []
+fromList (In (Inr (Cons x xs))) = x : fromList xs
 
 -- Set
 type Set a = [a]
 
-
--- from [a] to T a
-toT :: Set a -> T a
-toT [] = nil One
-toT (x:xs) = cons $ Cross x (toT xs)
-
--- from T a to [a]
-fromT :: forall a . Show a => T a -> Set a
-fromT (InT One) = []
-fromT (InT x) = (outl x) : fromT (outr x)
-
-mapF :: (a -> c) -> (b -> d) -> F a b -> F c d
-mapF f g One = One
-mapF f g (Cross a b) = Cross (f a) (g b)
-
-
 mapSet :: (a -> b) -> Set a -> Set b
 mapSet = map
-
--- cata-morphism
-foldF :: (F a b -> b) -> T a -> b
-foldF f (InT x) = f (mapF id (foldF f) x)
 
 -- max function on Set
 maxSet :: (a -> a -> Bool) -> Set a -> a
@@ -89,11 +90,6 @@ thinSet q = foldr step []
                       | b `q` a = a : xs
                       | otherwise = b : step a xs
 
-
-cppF :: F a (Set b) -> Set(F a b)
-cppF One = wrap $ One
-cppF (Cross a xss) = [ (Cross a xs) | xs <- xss ]
-
 type Predicate a = a -> Bool
 
 test :: (Predicate a) -> a -> Maybe a
@@ -102,6 +98,11 @@ test p x = if p x then Just x else Nothing
 -- singleton
 wrap :: a -> Set a
 wrap x = [x]
+
+-- F ∈
+cppL :: L a (Set b) -> Set (L a b)
+cppL (Inl Nil) = wrap $ Inl Nil
+cppL (Inr (Cons x ys)) = [ Inr (Cons x y) | y <- ys ]
 
 -------------------------------------------------
 
@@ -120,27 +121,6 @@ cpr (x,ys) = [ (x,y) | y <- ys ]
 split :: (a -> b) -> (a -> c) -> a -> (b,c)
 split f g x = ( f x , g x )
 
--------------------------------------------------
-headT :: T a -> a
-headT (InT (Cross a b)) = a
--------------------------------------------------
-sumT :: T Int -> Int
-sumT = foldF plusF
-  where plusF :: F Int Int -> Int
-        plusF One = 0
-        plusF (Cross a b) = a + b
--------------------------------------------------
-lengthT :: T a -> Int
-lengthT = foldF lenF
-  where lenF :: F a Int -> Int
-        lenF One = 0
-        lenF (Cross a b) = 1 + b
--------------------------------------------------
-averageT :: T Int -> Int
-averageT = ( \(s,l) -> s `div` l ) . foldF aveF
-  where aveF :: F Int (Int,Int) -> (Int,Int)
-        aveF One = (0,0)
-        aveF (Cross a (b,n)) = ( a+b , n+1 )
 -------------------------------------------------
 
 -- input : S , R , Q
@@ -169,21 +149,21 @@ averageT = ( \(s,l) -> s `div` l ) . foldF aveF
 -- preorder on type a
 type Order a = a -> a -> Bool
 
-type Funs a b = ( [F a b -> Maybe b] , [F a b -> Maybe b] )
+type Funs a b = ( [L a b -> Maybe b] , [L a b -> Maybe b] )
 
 -- powerF S = Λ S
-powerF :: Funs a b -> F a b -> Set b
+powerF :: Funs a b -> L a b -> Set b
 powerF funs x =
   case x of
-    One       -> aux $ fst funs
-    Cross _ _ -> aux $ snd funs
+    Inl _ -> aux $ fst funs
+    Inr _ -> aux $ snd funs
     where aux fs = do
             f <- fs
             maybeToList $ f x
 
 -- Λ ( S . F ∈ ) = E S . Λ F ∈
 -- nub : O (n^2) time
-mapE :: Eq b => Funs a b -> Set(F a b) -> Set b
+mapE :: Eq b => Funs a b -> Set(L a b) -> Set b
 mapE funs set = nub $ aux funs set
   where
     aux fs xs = do
@@ -192,30 +172,30 @@ mapE funs set = nub $ aux funs set
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 -- = max R . (| thin Q . E S . ΛF ∈ |)
-solverThinning :: Eq b => Funs a b -> Order b -> Order b -> T a -> b
-solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppF)
+solverThinning :: Eq b => Funs a b -> Order b -> Order b -> List a -> b
+solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppL)
 
 
 -- (| max R . Λ S  |)
-solverGreedy :: Eq b => Funs a b -> Order b -> T a -> b
+solverGreedy :: Eq b => Funs a b -> Order b -> List a -> b
 solverGreedy funs q = foldF ( maxSet q . powerF funs )
 
 
 -- max R . (| Λ ( S . F ∈ ) |)
-solverNaive :: Eq b => Funs a b -> Order b -> T a -> b
-solverNaive funs r = maxSet r . foldF ( mapE funs . cppF)
+solverNaive :: Eq b => Funs a b -> Order b -> List a -> b
+solverNaive funs r = maxSet r . foldF ( mapE funs . cppL)
 
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 -- = max R . filter p . (| E S . ΛF ∈ ) |)
-solverFilterNaive :: Eq b => Funs a b -> Predicate b -> Order b -> T a -> b
+solverFilterNaive :: Eq b => Funs a b -> Predicate b -> Order b -> List a -> b
 solverFilterNaive funs p r = maxSet r . filter p . generator
   where
-    generator = foldF ( mapE funs . cppF )
+    generator = foldF ( mapE funs . cppL )
 
 data Mode = Thinning | Greedy | FilterNaive | Naive
 
-solverMain :: Eq b => Funs a b -> Predicate b -> Order b -> Order b -> Mode -> T a -> b
+solverMain :: Eq b => Funs a b -> Predicate b -> Order b -> Order b -> Mode -> List a -> b
 solverMain funs p r q mode =
   case mode of
     Thinning -> solverThinning funs r q
@@ -224,38 +204,53 @@ solverMain funs p r q mode =
     FilterNaive    -> solverFilterNaive funs p r
 -------------------------------------------------
 
-subsequences :: Eq a => T a -> Set (T a)
-subsequences = foldF ( mapE funs . cppF )
-  where
-    funs = (funs1,funs2)
-    funs1 = [ Just . nil ]
-    funs2 = [ Just . cons , Just . outr ]
+-- type Funs a b = ( [L a b -> Maybe b] , [L a b -> Maybe b] )
+out (In x) = x
+nil _ = In (Inl Nil)
+cons x = In x
+outr (Inr (Cons a b)) = b
+
+-- subsequences :: Eq a => List a -> Set (List a)
+-- subsequences = foldF ( mapE funs . cppL )
+--   where
+--     funs = (funs1,funs2)
+--     funs1 = [ Just . nil ]
+--     funs2 = [ Just . cons , Just . outr ]
 
 -- subsequences' :: Eq a => T a -> Set (T a)
 -- subsequences' = foldF sbsqF
 --   where
 --     sbsqF One = wrap $ nil One
 --     sbsqF (Cross a xss) = [ InT (Cross a xs) | xs <- xss ] `union` xss
-
-inits :: Eq a => T a -> Set (T a)
-inits = foldF ( mapE funs . cppF )
-  where
-    funs = (funs1,funs2)
-    funs1 = [ Just . nil ]
-    funs2 = [ Just . cons , Just . nil ]
-
+--
+-- inits :: Eq a => T a -> Set (T a)
+-- inits = foldF ( mapE funs . cppF )
+--   where
+--     funs = (funs1,funs2)
+--     funs1 = [ Just . nil ]
+--     funs2 = [ Just . cons , Just . nil ]
+--
 -- inits' :: Eq a => T a -> Set (T a)
 -- inits' = foldF initF
 --   where
 --    initF One = wrap $ nil One
 --    initF (Cross a xss) = (wrap $ nil One) `union` (map (cons . (Cross a)) xss)
-
-tails' :: T a -> Set (T a)
-tails' = foldF tailF
-  where tailF One = wrap $ nil One
-        tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
-
-segments :: Eq a => T a -> Set (T a)
-segments (InT One) = wrap $ nil One
-segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
+--
+-- tails' :: T a -> Set (T a)
+-- tails' = foldF tailF
+--   where tailF One = wrap $ nil One
+--         tailF (Cross a (x:xs)) = (InT (Cross a x)) : x : xs
+--
+-- segments :: Eq a => T a -> Set (T a)
+-- segments (InT One) = wrap $ nil One
+-- segments (a@(InT (Cross x xs))) = inits a `union` (segments xs)
 -------------------------------------------------
+
+sumList = foldF plusF
+  where plusF (Inl Nil) = 0
+        plusF (Inr (Cons a b)) = a + b
+
+
+main = do
+  print $ sumList $ toList [1..10]
+
