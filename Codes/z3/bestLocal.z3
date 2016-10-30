@@ -3,7 +3,7 @@
 (declare-fun sum ((List Int)) Int)
 (assert (forall ((xs (List Int)))
   (ite (= nil xs)
-       (= 0                               (sum xs))
+       (= 0                             (sum xs))
        (= (+ (head xs) (sum (tail xs))) (sum xs)))))
 
 ; a `r` b = sum a <= sum b
@@ -32,7 +32,7 @@
 (declare-fun mapInsert ((Int) (ListSet Int)) (ListSet Int))
 (assert (forall ((a Int) (xs (ListSet Int)))
           (ite (= nilSet xs)
-               (= (cons (insert a nil) nilSet) (mapInsert a xs))
+               (= nilSet (mapInsert a xs))
                (= (cons (insert a (hd xs)) (mapInsert a (tl xs))) (mapInsert a xs)))))
 
 ; minR :: ListSet a -> List a
@@ -42,18 +42,28 @@
        (= x  (minR xs))
        (= (min2 (hd xs) (minR (tl xs))) (minR xs)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;(declare-const xss (ListSet Int))
-;(assert (= xss (cons (insert 1 (insert 3 nil)) nilSet)))
-;(assert (= false (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss))))))
+(declare-const xss (ListSet Int))
+(assert (= xss (cons (insert 4 nil) (cons (insert 1 (insert 3 nil)) nilSet))))
+(assert (= true (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss)))))) ; => , takes 
+;(assert (= false 
+;        (forall ((yss (ListSet Int)))
+;          (=> (not (= yss nilSet))
+;              (eqR (insert 1 (minR yss)) (minR (mapInsert 1 yss))))))) ; => , takes 
+;(assert (= false (eqR (insert 2 (minR xss)) (minR (mapInsert 2 xss))))) ; => unsta , takes 5 seconds
+;(assert (= false (= (sum (minR (mapInsert 0 xss))) (sum (minR xss))))) ; => unsat , takes 10 seconds
+;(assert (= true (= 5 (sum (minR (mapInsert 2 xss)))))) ; => unsat , takes 10 seconds
+;(assert (= false (= 6 (sum (minR (mapInsert 2 xss)))))) ; => unsat , takes 2 minutes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Best-Local
 ; sum (a:(minR xs)) = sum . minR $ (map (a:) xs)
-(assert (= false (forall ((a Int) (xs (ListSet Int)))
-  (eqR (insert a (minR xs)) (minR (mapInsert a xs))))))
-
-
-
+;(assert (= false 
+;         (forall ((a Int) (xs (ListSet Int))) 
+;            (=> (not (= xs nilSet))
+;                (eqR (insert a (minR xs)) (minR (mapInsert a xs))))))
 
 (check-sat)
+
+
