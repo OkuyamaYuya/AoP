@@ -42,16 +42,18 @@
        (= x  (minR xs))
        (= (min2 (hd xs) (minR (tl xs))) (minR xs)))))
 
-(declare-const xss (ListSet Int))
-(declare-const xss2 (ListSet Int))
-(assert (= xss (cons (insert 1 (insert 3 nil)) nilSet)))
-(assert (= xss2 (cons (insert 3 nil) nilSet)))
-;(assert (= true (eqR (insert 1 (minR xss)) (minR (mapInsert 1 xss)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(declare-const xss (ListSet Int))
+;(assert (= xss (cons (insert 1 (insert 3 nil)) nilSet)))
+;(assert (= false (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Best-Local
 ; sum (a:(minR xs)) = sum . minR $ (map (a:) xs)
-(assert (not (forall ((a Int) (xs (ListSet Int)))
+(assert (= false (forall ((a Int) (xs (ListSet Int)))
   (eqR (insert a (minR xs)) (minR (mapInsert a xs))))))
 
-(check-sat)
 
+
+
+(check-sat)
