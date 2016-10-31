@@ -56,8 +56,6 @@ knapF = (funs1,funs2)
     p = within 10
     funs1 = [ Just . nil ]
     funs2 = [ Just . outr , test p . cons ]
--- knapF p One = wrap $ nil One
--- knapF p x = (wrap $ outr x) `union` (test p $ cons x)
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 
@@ -80,8 +78,6 @@ llsF = (funs1,funs2)
   where
     funs1 = [ Just . nil ]
     funs2 = [ Just . outr , Just . cons ]
--- llsF p One = wrap $ nil One
--- llsF p x = (wrap $ outr x) `union` (wrap $ cons x)
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
 
