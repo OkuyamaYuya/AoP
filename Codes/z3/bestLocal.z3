@@ -46,7 +46,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare-const xss (ListSet Int))
 (assert (= xss (cons (insert 4 nil) (cons (insert 1 (insert 3 nil)) nilSet))))
-(assert (= true (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss)))))) ; => , takes 
+(assert (= false (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss)))))) ; => , takes 
 ;(assert (= false 
 ;        (forall ((yss (ListSet Int)))
 ;          (=> (not (= yss nilSet))
