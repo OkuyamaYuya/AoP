@@ -46,12 +46,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (declare-const xss (ListSet Int))
 (assert (= xss (cons (insert 4 nil) (cons (insert 1 (insert 3 nil)) nilSet))))
-(assert (= false (forall ((a Int)) (eqR (insert a (minR xss)) (minR (mapInsert a xss)))))) ; => , takes 
+(assert (= false
+           (forall ((a Int)) 
+           (eqR (insert a (minR xss)) (minR (mapInsert a xss)))))) ; => timeout
 ;(assert (= false 
 ;        (forall ((yss (ListSet Int)))
 ;          (=> (not (= yss nilSet))
-;              (eqR (insert 1 (minR yss)) (minR (mapInsert 1 yss))))))) ; => , takes 
-;(assert (= false (eqR (insert 2 (minR xss)) (minR (mapInsert 2 xss))))) ; => unsta , takes 5 seconds
+;              (eqR (insert 1 (minR yss)) (minR (mapInsert 1 yss))))))) ; => timeout
+
+;(assert (= false (eqR (insert 2 (minR xss)) (minR (mapInsert 2 xss))))) ; => unstat , takes 5 seconds
 ;(assert (= false (= (sum (minR (mapInsert 0 xss))) (sum (minR xss))))) ; => unsat , takes 10 seconds
 ;(assert (= true (= 5 (sum (minR (mapInsert 2 xss)))))) ; => unsat , takes 10 seconds
 ;(assert (= false (= 6 (sum (minR (mapInsert 2 xss)))))) ; => unsat , takes 2 minutes
