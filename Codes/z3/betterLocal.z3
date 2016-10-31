@@ -1,4 +1,6 @@
 
+; lexicographic order , no restriction knapsack
+
 ; sum
 (declare-fun sum ((List Int)) Int)
 (assert (forall ((xs (List Int)))
