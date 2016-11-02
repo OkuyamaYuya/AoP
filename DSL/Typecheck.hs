@@ -22,15 +22,15 @@ tycheck_ = \e -> \env -> case e of
   VAR x -> envLook (VAR x) env
   LIST (e1:rest) -> let t1 = tycheck_ e1 env in
                     case rest of
-                      [] -> LISTtype t1
-                      _  -> if LISTtype t1 == tycheck_ (LIST rest) env
-                            then LISTtype t1 
+                      [] -> LISTty t1
+                      _  -> if LISTty t1 == tycheck_ (LIST rest) env
+                            then LISTty t1 
                             else BOTTOM "List type error"
   GET e1 e2   -> let t1 = tycheck_ e1 env in
                  if (tycheck_ e2 env) /= INT then BOTTOM "type error : list[i], i must be Int type."
                  else 
                     case t1 of
-                      LISTtype a -> a
+                      LISTty a -> a
                       _ -> BOTTOM "type error : x[i] , x must be LIST."
   IF e1 e2 e3 -> let t1 = tycheck_ e1 env in
                  let t2 = tycheck_ e2 env in
@@ -71,7 +71,7 @@ tycheck_ = \e -> \env -> case e of
                     else BOTTOM "(||)::BOOL->BOOL->BOOL"
   _ -> BOTTOM "error"
 
-envLook :: EXP -> ENV_ty -> TY
+envLook :: Expr -> ENV_ty -> TY
 envLook (VAR str) env =
   case Map.lookup str env of
     Just a -> a

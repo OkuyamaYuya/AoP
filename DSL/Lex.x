@@ -10,9 +10,11 @@ import qualified Token as T
 $digit = [0-9]
 $lower = [a-z]
 $alpha = [a-zA-Z]
+$eol   = [\n]
 
 tokens :-
     $white+ ;
+    $eol { \s -> T.Eol }
     "(" { \s -> T.Lparen }
     ")" { \s -> T.Rparen }
     "[" { \s -> T.Lparen2 }
@@ -41,7 +43,9 @@ tokens :-
     "," { \s -> T.Comma }
     ":" { \s -> T.Colon }
     "=" { \s -> T.Assign }
+    "foldr" { \s -> T.Foldr }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
+
 {
 
 scanTokens = alexScanTokens

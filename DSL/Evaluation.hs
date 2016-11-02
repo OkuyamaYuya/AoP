@@ -11,8 +11,8 @@ import Debug.Trace
 data VALUE = NN Int
            | BB Bool
            | LL [VALUE]
-           | CLOSURE {env::ENV, var::String, e::EXP}
-           | RECCLOS {env::ENV, f::String, var::String, e::EXP}
+           | CLOSURE {env::ENV, var::String, e::Expr}
+           | RECCLOS {env::ENV, f::String, var::String, e::Expr}
            | ERR String 
            deriving (Show)
 type ENV   = Map String VALUE
@@ -63,7 +63,7 @@ equ   v1 v2 = case (v1,v2) of
                 (BB a,BB b) -> BB $ a==b
 mycons v1 l2 = let (LL rest) = l2 in LL $ v1 : rest
 
-envLook :: EXP -> ENV -> VALUE
+envLook :: Expr -> ENV -> VALUE
 envLook (VAR str) env =
   case Map.lookup str env of
     Just a -> a

@@ -77,7 +77,7 @@ Sequence : Exp  { [$1] }
 
 Type : tyInt  { S.INT }
      | tyBool { S.BOOL }
-     | tyList Type { S.LISTtype $2 }
+     | tyList Type { S.LISTty $2 }
      | Type '->' Type { S.FUN $1 $3 }
      | '(' Type ')'   { $2 }
 

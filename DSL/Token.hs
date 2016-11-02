@@ -30,4 +30,5 @@ data Token = Let
            | Comma
            | Assign
            | Foldr
+           | Eol
            deriving (Show,Eq)
