@@ -33,11 +33,11 @@ tokens :-
     "else" { \s -> T.Else }
     "let" { \s -> T.Let }
     "rec" { \s -> T.Rec }
-    "in" { \s -> T.In }
     "\" { \s -> T.Lambda }
     "Int" { \s -> T.TyInt }
     "Bool" { \s -> T.TyBool }
     "List" { \s -> T.TyList }
+    "Pair" { \s -> T.TyPair }
     "->" { \s -> T.Arrow }
     "." { \s -> T.Dot }
     "," { \s -> T.Comma }

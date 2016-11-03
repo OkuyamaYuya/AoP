@@ -8,7 +8,9 @@ data TY  = INT
          | BOTTOM String 
            deriving (Show,Read,Eq)
 
-data Program = Program [Expr] deriving (Show,Read)
+data Program = Program [Sentence] deriving (Show,Read)
+
+data Sentence = BIND {name::String, ty2::TY, e2::Expr} deriving (Show,Read)
 
 data Expr = NAT Int 
           | B Bool
@@ -22,11 +24,10 @@ data Expr = NAT Int
           | APP Expr Expr
           | LIST [Expr]
           | GET Expr Expr
-          | IF {cond::Expr, tru::Expr, fal::Expr} 
-          | ABS {var::String, ty::TY, e::Expr} 
-          | BIND {var::String, ty::TY, e::Expr, in_::Expr}
-          | REC   {f::String, ty::TY, var::String, e::Expr, in_::Expr}
-          | FOLDR {h::Expr, e::Expr}
+          | IF    {cond::Expr, tru::Expr, fal::Expr} 
+          | ABS   {var::String, ty::TY, e::Expr} 
+          | REC   {f::String,   ty::TY, var::String, e::Expr}
+          | FOLDR {f::String,   e::Expr}
           | EOF
           deriving (Show,Read)
 

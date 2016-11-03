@@ -29,7 +29,6 @@ import qualified Token as T
   then { T.Then }
   else { T.Else }
   let { T.Let }
-  in { T.In }
   rec { T.Rec }
   foldr { T.Foldr }
   '.' { T.Dot }
@@ -51,11 +50,18 @@ import qualified Token as T
 %%
 
 Main :
-    Sentence { $1 }
+    Program { $1 }
+
+Program :
+    Sentences { S.Program $1 }
+
+Sentences :
+    Sentence { [$1] }
+  | Sentence eol { [$1] }
+  | Sentence eol Sentences { $1 : $3 }
 
 Sentence :
-    Expr { S.Program [$1] }
-  | Expr eol Sequence { S.Program ( $1 : $3 ) }
+    let var ':' Type '=' Expr   { S.BIND $2 $4 $6 }
 
 
 Expr : 
@@ -73,12 +79,11 @@ Expr_ :
   | int                     { S.NAT $1 }
   | var                     { S.VAR $1 }
   | bool                    { S.B $1 }
-  | lambda var ':' Type '.' Expr           { S.ABS $2 $4 $6 }
-  | if Expr then Expr else Expr            { S.IF $2 $4 $6 }
-  | let rec var var ':' Type '=' Expr in Expr { S.REC $3 $6 $4 $8 $10 }
-  | let var ':' Type '=' Expr in Expr       { S.BIND $2 $4 $6 $8 }
+  | lambda var ':' Type '.' Expr       { S.ABS $2 $4 $6 }
+  | if Expr then Expr else Expr        { S.IF $2 $4 $6 }
   | '[' Sequence  ']' { S.LIST $2 }
   | Expr '[' Expr ']' { S.GET $1 $3 }
+  | foldr var Expr    { S.FOLDR $2 $3 }
 
 Sequence : 
     Expr  { [$1] }

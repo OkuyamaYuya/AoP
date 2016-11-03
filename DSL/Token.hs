@@ -2,7 +2,7 @@ module Token where
 
 data Token = Let
            | Rec
-           | In
+           -- | In
            | Int Int
            | Bool Bool
            | Var String
