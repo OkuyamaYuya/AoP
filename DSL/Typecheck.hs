@@ -10,7 +10,8 @@ import Debug.Trace
 
 type ENV_ty = Map String TY
 
-default_env = Map.empty
+fa = FUN (PAIRty INT (LISTty INT)) (LISTty INT)
+default_env = fromList [("nil",fa),("cons",fa),("outr",fa)]
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
@@ -89,4 +90,4 @@ envAdd x e env = Map.insert x e env
 -- main :: IO()
 -- main = do
 --   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
---   print $ tycheck.parse.scanTokens $ "let y : Int -> Int = \\a:Int.3"
+  -- print $ tycheck.parse.scanTokens $ "let y : Int -> Int = \\a:Int.3"
