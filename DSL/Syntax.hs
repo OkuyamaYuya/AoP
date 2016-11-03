@@ -8,7 +8,7 @@ data TY  = INT
          | BOTTOM String 
            deriving (Show,Read,Eq)
 
-data Program = Program [Expr]
+data Program = Program [Expr] deriving (Show,Read)
 
 data Expr = NAT Int 
           | B Bool

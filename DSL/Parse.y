@@ -40,7 +40,9 @@ import qualified Token as T
   lambda { T.Lambda }
   tyInt  { T.TyInt }
   tyBool { T.TyBool }
-  tyList { T.TyList}
+  tyList { T.TyList }
+  tyPair { T.TyPair }
+  eol { T.Eol  }
 
 %right in '->'
 %left '+' '-'
@@ -49,7 +51,12 @@ import qualified Token as T
 %%
 
 Main :
-    Expr { $1 }
+    Sentence { $1 }
+
+Sentence :
+    Expr { S.Program [$1] }
+  | Expr eol Sequence { S.Program ( $1 : $3 ) }
+
 
 Expr : 
     Expr_ { $1 }
@@ -81,6 +88,7 @@ Type :
     tyInt  { S.INT }
   | tyBool { S.BOOL }
   | tyList Type { S.LISTty $2 }
+  | tyPair Type Type { S.PAIRty $2 $3 }
   | Type '->' Type { S.FUN $1 $3 }
   | '(' Type ')'   { $2 }
 

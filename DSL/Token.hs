@@ -23,6 +23,7 @@ data Token = Let
            | TyInt
            | TyBool
            | TyList
+           | TyPair
            | Arrow
            | Lambda
            | Dot

@@ -13,8 +13,8 @@ $alpha = [a-zA-Z]
 $eol   = [\n]
 
 tokens :-
-    $white+ ;
     $eol { \s -> T.Eol }
+    $white+ ;
     "(" { \s -> T.Lparen }
     ")" { \s -> T.Rparen }
     "[" { \s -> T.Lparen2 }
