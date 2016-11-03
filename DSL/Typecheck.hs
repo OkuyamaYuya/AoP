@@ -10,13 +10,23 @@ import Debug.Trace
 
 type ENV_ty = Map String TY
 
-tycheckFile = \s -> tycheck.parse.scanTokens <$> readFile s
+default_env = Map.empty
 
-tycheck = \s -> case s of
-  Reject err -> BOTTOM "syntax error"
-  Accept e  -> tycheck_ e (Map.empty)
+tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
-tycheck_ = \e -> \env -> case e of
+tycheck prog = case prog of
+  Reject err -> Nothing
+  Accept ps  -> let Program ss = ps
+                in Prelude.foldl aux (Just default_env) ss
+                where
+                  aux Nothing _ = Nothing
+                  aux (Just env) s =
+                    let (BIND x t e) = s in
+                    if t == tycheck_ e env
+                    then Just (envAdd x t env)
+                    else Nothing
+
+tycheck_ e env = case e of
   NAT n -> INT
   B   b -> BOOL
   VAR x -> envLook (VAR x) env
@@ -36,12 +46,6 @@ tycheck_ = \e -> \env -> case e of
                  let t2 = tycheck_ e2 env in
                  let t3 = tycheck_ e3 env in
                  if t1==BOOL && t2==t3 then t2 else BOTTOM "type error in if statement"
-  BIND x t e1 e2 -> let t1 = tycheck_ e1 env in tycheck_ e2 (envAdd x t1 env)
-  ABS x t1 e -> let t2 = tycheck_ e (envAdd x t1 env) in FUN t1 t2
-  REC f t x e1 e2 -> case t of
-                      FUN dom cod -> let t1 = tycheck_ e1 (envAdd f t . envAdd x dom $ env) in
-                                     let t2 = tycheck_ e2 (envAdd f t env) in
-                                     if t1 == cod then t2 else BOTTOM "REC : codomain"
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
                     FUN t1 t2 -> let t3 = tycheck_ e2 env in
@@ -82,5 +86,5 @@ envAdd x e env = Map.insert x e env
 
 main :: IO()
 main = do
-  print $ tycheck.parse.scanTokens $ "let rec f n : Int -> List Int = if n == 0 then [0,0,0,0] else [1,2,3,4] in (f 3)[2]"
-  print 0
+  -- print $ tycheck.parse.scanTokens $ "let f : Int -> List Int = \\n -> if n == 0 then [0,0,0,0] else [1,2,3,4] in (f 3)[2]"
+  print $ tycheck.parse.scanTokens $ "let x : Int = 100\nlet y:Int = 33"
