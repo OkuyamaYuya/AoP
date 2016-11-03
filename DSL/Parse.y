@@ -82,7 +82,7 @@ Expr_ :
   | lambda var ':' Type '.' Expr       { S.ABS $2 $4 $6 }
   | if Expr then Expr else Expr        { S.IF $2 $4 $6 }
   | '[' Sequence  ']' { S.LIST $2 }
-  | '(' Sequence  ')' { S.PAIR $2 }
+  | '(' Expr ',' Expr ')' { S.PAIR $2 $4 }
   | Expr '[' Expr ']' { S.GET $1 $3 }
   | foldr var Expr    { S.FOLDR $2 $3 }
 

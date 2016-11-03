@@ -8,26 +8,21 @@ import Syntax
 -- import Evaluation
 import System.Environment (getArgs)
 
-ss = [ "let x : Pair Int Int = (1,2)",
-       "let y : Int->Int = \\a:Int.3",
+ss = [ "let b : Int = 1",
+       "let p1 : Pair Int Int = (1,2)",
+       "let f : Int->Int = \\a:Int.3",
        "let z : Int = if 1 == 1 then 2 else 4",
        "let w : List Int = [1,2,3,4]", 
-       "let sum : (List Int) -> Int = foldr plus 0",
-       "let e1 : (Pair Int Int)->Int = nil",
-       "let f1 : (Pair Int Int)->Int = cons",
-       "let f2 : (Pair Int Int)->Int = outr",
-       "",
-       "",
+       -- "let sum : (List Int) -> Int = foldr plus 0",
+       -- "let f1 : (Pair Int Int)->Int = cons",
        "" ]
 
 s = unlines ss
 
-
 main::IO()
 main = do
-  print.parse.scanTokens $ s
-
-  s <- (head <$> getArgs) >>= readFile
+  print $ parse.scanTokens $ s
+  -- s <- (head <$> getArgs) >>= readFile
   let res_p = parse.scanTokens $ s in
     case res_p of
      Reject err -> putStrLn $ show err
@@ -36,6 +31,4 @@ main = do
             Nothing -> putStrLn "err"
             Just _  -> print res_t
             -- True -> let res_e = eval res_p in putStrLn $ show res_e
-
-
 

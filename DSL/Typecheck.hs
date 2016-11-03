@@ -30,6 +30,7 @@ tycheck_ e env = case e of
   NAT n -> INT
   B   b -> BOOL
   VAR x -> envLook (VAR x) env
+  PAIR x y -> PAIRty (tycheck_ x env) (tycheck_ y env)
   LIST (e1:rest) -> let t1 = tycheck_ e1 env in
                     case rest of
                       [] -> LISTty t1
@@ -46,6 +47,7 @@ tycheck_ e env = case e of
                  let t2 = tycheck_ e2 env in
                  let t3 = tycheck_ e3 env in
                  if t1==BOOL && t2==t3 then t2 else BOTTOM "type error in if statement"
+  ABS x t1 e -> let t2 = tycheck_ e (envAdd x t1 env) in FUN t1 t2
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
                     FUN t1 t2 -> let t3 = tycheck_ e2 env in
@@ -84,7 +86,7 @@ envLook (VAR str) env =
 envAdd :: String -> TY -> ENV_ty -> ENV_ty
 envAdd x e env = Map.insert x e env
 
-main :: IO()
-main = do
-  -- print $ tycheck.parse.scanTokens $ "let f : Int -> List Int = \\n -> if n == 0 then [0,0,0,0] else [1,2,3,4] in (f 3)[2]"
-  print $ tycheck.parse.scanTokens $ "let x : Int = 100\nlet y:Int = 33"
+-- main :: IO()
+-- main = do
+--   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
+--   print $ tycheck.parse.scanTokens $ "let y : Int -> Int = \\a:Int.3"

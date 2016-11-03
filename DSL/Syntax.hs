@@ -23,7 +23,7 @@ data Expr = NAT Int
           | OR Expr Expr
           | APP Expr Expr
           | LIST [Expr]
-          | PAIR [Expr]
+          | PAIR Expr Expr
           | GET Expr Expr
           | IF    {cond::Expr, tru::Expr, fal::Expr} 
           | ABS   {var::String, ty::TY, e::Expr} 
