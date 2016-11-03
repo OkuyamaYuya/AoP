@@ -10,7 +10,9 @@ data TY  = INT
 
 data Program = Program [Sentence] deriving (Show,Read)
 
-data Sentence = BIND {name::String, ty2::TY, e2::Expr} deriving (Show,Read)
+data Sentence = BIND {name::String, ty2::TY, e2::Expr} 
+              | CommentOut
+                deriving (Show,Read)
 
 data Expr = NAT Int 
           | B Bool
@@ -29,5 +31,5 @@ data Expr = NAT Int
           | ABS   {var::String, ty::TY, e::Expr} 
           | FOLDR {f::Expr, e::Expr}
           | EOF
-          deriving (Show,Read)
+            deriving (Show,Read)
 

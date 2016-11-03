@@ -8,7 +8,7 @@ Parse.hs : Parse.y
 
 
 Main : Lex.hs Parse.hs Main.hs
-	ghc --make Main
+	ghc --make Main.hs
 
 clean:
 	rm -f *.o *.hi Parse.hs Lex.hs

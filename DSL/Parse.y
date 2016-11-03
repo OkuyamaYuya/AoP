@@ -29,13 +29,13 @@ import qualified Token as T
   then { T.Then }
   else { T.Else }
   let { T.Let }
-  rec { T.Rec }
   foldr { T.Foldr }
   '.' { T.Dot }
   ',' { T.Comma }
   ':' { T.Colon }
   '=' { T.Assign }
   '->' { T.Arrow }
+  '--' { T.CommentOut }
   lambda { T.Lambda }
   tyInt  { T.TyInt }
   tyBool { T.TyBool }
@@ -43,7 +43,7 @@ import qualified Token as T
   tyPair { T.TyPair }
   eol { T.Eol  }
 
-%right in '->'
+%right '->'
 %left '+' '-'
 %left '*' '/'
 
@@ -56,12 +56,14 @@ Program :
     Sentences { S.Program $1 }
 
 Sentences :
-    Sentence { [$1] }
+    eol Sentences { $2 }
+  | Sentence { [$1] }
   | Sentence eol { [$1] }
   | Sentence eol Sentences { $1 : $3 }
 
 Sentence :
-    let var ':' Type '=' Expr   { S.BIND $2 $4 $6 }
+    '--' All                    { S.CommentOut }
+  | let var ':' Type '=' Expr   { S.BIND $2 $4 $6 }
 
 
 Expr : 
@@ -98,6 +100,40 @@ Type :
   | Type '->' Type { S.FUN $1 $3 }
   | '(' Type ')'   { $2 }
 
+All :
+    All_ {}
+  | All_ All {}
+
+All_ :
+    bool { }
+  | int  { }
+  | var  { }
+  | '('  { }
+  | ')'  { }
+  | '['  { }
+  | ']'  { }
+  | '-'  { }
+  | '+'  { }
+  | '*'  { }
+  | '==' { }
+  | '&&' { }
+  | '||' { }
+  | if   { }
+  | then { }
+  | else { }
+  | let  { }
+  | foldr { }
+  | '.' { }
+  | ',' { }
+  | ':' { }
+  | '=' { }
+  | '->' { }
+  | '--' { }
+  | lambda { }
+  | tyInt  { }
+  | tyBool { }
+  | tyList { }
+  | tyPair { }
 
 {
 

@@ -10,25 +10,32 @@ import Debug.Trace
 
 type ENV_ty = Map String TY
 
-fa a b = FUN (PAIRty a b) b
-default_env = fromList [ ("nil",fa INT (LISTty INT)),
-                         ("cons",fa INT (LISTty INT)),
-                         ("outr",fa INT (LISTty INT)),
-                         ("plus",fa INT INT)]
+fa a b = FUN a (FUN b b)
+default_env = fromList [ ("nil"  ,fa INT (LISTty INT)),
+                         ("cons" ,fa INT (LISTty INT)),
+                         ("outr" ,fa INT (LISTty INT)),
+                         ("plus" ,fa INT INT),
+                         ("fst"  ,FUN (PAIRty INT INT) INT),
+                         ("snd"  ,FUN (PAIRty INT INT) INT),
+                         ("leq"  ,FUN INT (FUN INT BOOL)),
+                         (""     ,BOTTOM "") ]
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
 tycheck prog = case prog of
-  Reject err -> Nothing
+  Reject err -> Reject err
   Accept ps  -> let Program ss = ps
-                in Prelude.foldl aux (Just default_env) ss
+                in Prelude.foldl aux (Accept default_env) ss
                 where
-                  aux Nothing _ = Nothing
-                  aux (Just env) s =
-                    let (BIND x t e) = s in
-                    if t == tycheck_ e env
-                    then Just (envAdd x t env)
-                    else Nothing
+                  aux (Reject a) _ = Reject a
+                  aux (Accept env) s =
+                    case s of
+                      CommentOut -> Accept env
+                      BIND x t e ->
+                        let s_type = tycheck_ e env in
+                        if t == s_type
+                        then Accept (envAdd x t env)
+                        else Reject (show s_type++" doesn't matches "++show t++" in "++show s)
 
 tycheck_ e env = case e of
   NAT n -> INT
@@ -51,12 +58,11 @@ tycheck_ e env = case e of
                  let t2 = tycheck_ e2 env in
                  let t3 = tycheck_ e3 env in
                  if t1==BOOL && t2==t3 then t2 else BOTTOM "type error in if statement"
-  FOLDR f e -> let x = trace (show $ tycheck_ f env) 1 in
-               case (tycheck_ f env) of
-                FUN (PAIRty a b) c
-                  | b == (tycheck_ e env) && b == c -> FUN (LISTty a) b
-                  | otherwise -> BOTTOM "e's type in fold isn't correct."
-                _ -> BOTTOM "f's type is not correct."
+  FOLDR f e ->  case (tycheck_ f env) of
+                  FUN a (FUN b c) -- f :: a -> b -> b , e :: b
+                    | b == (tycheck_ e env) && b == c -> FUN (LISTty a) b
+                    | otherwise -> BOTTOM $ "e's type in fold isn't correct."++(show b)
+                  _ -> BOTTOM "f's type is not correct."
   ABS x t1 e -> let t2 = tycheck_ e (envAdd x t1 env) in FUN t1 t2
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of

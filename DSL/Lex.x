@@ -1,9 +1,6 @@
 {
-
 module Lex where
-
 import qualified Token as T
-
 }
 %wrapper "basic"
 
@@ -33,7 +30,6 @@ tokens :-
     "then" { \s -> T.Then }
     "else" { \s -> T.Else }
     "let" { \s -> T.Let }
-    "rec" { \s -> T.Rec }
     "\" { \s -> T.Lambda }
     "Int" { \s -> T.TyInt }
     "Bool" { \s -> T.TyBool }
@@ -44,10 +40,9 @@ tokens :-
     "," { \s -> T.Comma }
     ":" { \s -> T.Colon }
     "=" { \s -> T.Assign }
+    "--" { \s -> T.CommentOut }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {
-
 scanTokens = alexScanTokens
-
 }

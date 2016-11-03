@@ -1,8 +1,6 @@
 module Token where
 
 data Token = Let
-           | Rec
-           -- | In
            | Int Int
            | Bool Bool
            | Var String
@@ -31,5 +29,6 @@ data Token = Let
            | Comma
            | Assign
            | Foldr
+           | CommentOut
            | Eol
            deriving (Show,Eq)
