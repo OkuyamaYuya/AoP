@@ -8,12 +8,12 @@ import Syntax
 -- import Evaluation
 import System.Environment (getArgs)
 
-ss = [ "let b : Int = 1",
-       "let p1 : Pair Int Int = (1,2)",
-       "let f : Int->Int = \\a:Int.3",
-       "let w : List Int = [1,2,3,4]", 
-       "let f1 : Int -> (List Int) -> List Int = cons",
-       "let sum : (List Int) -> Int = foldr plus 0",
+ss = [ "b : Int = 1",
+       "p1 : Pair Int Int = (1,2)",
+       "f : Int->Int = \\a:Int.3",
+       "w : List Int = [1,2,3,4]", 
+       "f1 : Int -> (List Int) -> List Int = cons",
+       "sum : (List Int) -> Int = foldr plus 0",
        "" ]
 main::IO()
 main = do

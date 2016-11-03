@@ -1,7 +1,6 @@
 module Token where
 
-data Token = Let
-           | Int Int
+data Token = Int Int
            | Bool Bool
            | Var String
            | Eq

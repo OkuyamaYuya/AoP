@@ -18,6 +18,7 @@ default_env = fromList [ ("nil"  ,fa INT (LISTty INT)),
                          ("fst"  ,FUN (PAIRty INT INT) INT),
                          ("snd"  ,FUN (PAIRty INT INT) INT),
                          ("leq"  ,FUN INT (FUN INT BOOL)),
+                         ("leq_lexico"  ,FUN (LISTty INT) (FUN (LISTty INT) BOOL)),
                          (""     ,BOTTOM "") ]
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
@@ -35,7 +36,8 @@ tycheck prog = case prog of
                         let s_type = tycheck_ e env in
                         if t == s_type
                         then Accept (envAdd x t env)
-                        else Reject (show s_type++" doesn't matches "++show t++" in "++show s)
+                        else Reject (show e++" "++show s_type++
+                                      " doesn't matches "++show t++" in "++show s)
 
 tycheck_ e env = case e of
   NAT n -> INT

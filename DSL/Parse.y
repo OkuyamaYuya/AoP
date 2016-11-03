@@ -28,7 +28,6 @@ import qualified Token as T
   if  { T.If }
   then { T.Then }
   else { T.Else }
-  let { T.Let }
   foldr { T.Foldr }
   '.' { T.Dot }
   ',' { T.Comma }
@@ -62,8 +61,8 @@ Sentences :
   | Sentence eol Sentences { $1 : $3 }
 
 Sentence :
-    '--' All                    { S.CommentOut }
-  | let var ':' Type '=' Expr   { S.BIND $2 $4 $6 }
+    '--' All                 { S.CommentOut }
+  | var ':' Type '=' Expr    { S.BIND $1 $3 $5 }
 
 
 Expr : 
@@ -121,7 +120,6 @@ All_ :
   | if   { }
   | then { }
   | else { }
-  | let  { }
   | foldr { }
   | '.' { }
   | ',' { }

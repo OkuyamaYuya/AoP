@@ -29,7 +29,6 @@ tokens :-
     "if" { \s -> T.If }
     "then" { \s -> T.Then }
     "else" { \s -> T.Else }
-    "let" { \s -> T.Let }
     "\" { \s -> T.Lambda }
     "Int" { \s -> T.TyInt }
     "Bool" { \s -> T.TyBool }
