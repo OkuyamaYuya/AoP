@@ -27,8 +27,7 @@ data Expr = NAT Int
           | GET Expr Expr
           | IF    {cond::Expr, tru::Expr, fal::Expr} 
           | ABS   {var::String, ty::TY, e::Expr} 
-          | REC   {f::String,   ty::TY, var::String, e::Expr}
-          | FOLDR {f::String,   e::Expr}
+          | FOLDR {f::Expr, e::Expr}
           | EOF
           deriving (Show,Read)
 

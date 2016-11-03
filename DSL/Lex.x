@@ -13,12 +13,13 @@ $alpha = [a-zA-Z]
 $eol   = [\n]
 
 tokens :-
-    $eol { \s -> T.Eol }
+    $eol+ { \s -> T.Eol }
     $white+ ;
     "(" { \s -> T.Lparen }
     ")" { \s -> T.Rparen }
     "[" { \s -> T.Lparen2 }
     "]" { \s -> T.Rparen2 }
+    "foldr" { \s -> T.Foldr }
     "True" { \s -> T.Bool True }
     "False" { \s -> T.Bool False }
     $digit+ { \s -> T.Int (read s) }
@@ -43,7 +44,6 @@ tokens :-
     "," { \s -> T.Comma }
     ":" { \s -> T.Colon }
     "=" { \s -> T.Assign }
-    "foldr" { \s -> T.Foldr }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {

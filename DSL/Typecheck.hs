@@ -10,8 +10,11 @@ import Debug.Trace
 
 type ENV_ty = Map String TY
 
-fa = FUN (PAIRty INT (LISTty INT)) (LISTty INT)
-default_env = fromList [("nil",fa),("cons",fa),("outr",fa)]
+fa a b = FUN (PAIRty a b) b
+default_env = fromList [ ("nil",fa INT (LISTty INT)),
+                         ("cons",fa INT (LISTty INT)),
+                         ("outr",fa INT (LISTty INT)),
+                         ("plus",fa INT INT)]
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
@@ -48,6 +51,12 @@ tycheck_ e env = case e of
                  let t2 = tycheck_ e2 env in
                  let t3 = tycheck_ e3 env in
                  if t1==BOOL && t2==t3 then t2 else BOTTOM "type error in if statement"
+  FOLDR f e -> let x = trace (show $ tycheck_ f env) 1 in
+               case (tycheck_ f env) of
+                FUN (PAIRty a b) c
+                  | b == (tycheck_ e env) && b == c -> FUN (LISTty a) b
+                  | otherwise -> BOTTOM "e's type in fold isn't correct."
+                _ -> BOTTOM "f's type is not correct."
   ABS x t1 e -> let t2 = tycheck_ e (envAdd x t1 env) in FUN t1 t2
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
@@ -90,4 +99,5 @@ envAdd x e env = Map.insert x e env
 -- main :: IO()
 -- main = do
 --   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
-  -- print $ tycheck.parse.scanTokens $ "let y : Int -> Int = \\a:Int.3"
+--   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
+  -- print $ tycheck.parse.scanTokens $ "let sum : (List Int) -> Int = foldr plus 0"
