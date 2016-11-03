@@ -1,4 +1,4 @@
 ### Syntax
 
 <br>
-![syntax](http://imgur.com/a/mtFaD)
+![syntax](http://i.imgur.com/Db7WYtO.png)
