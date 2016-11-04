@@ -6,16 +6,25 @@ data TY  = INT
          | PAIRty TY TY
          | FUN TY TY 
          | BOTTOM String 
-           deriving (Read,Eq)
+           deriving (Show,Read,Eq)
 
-instance Show TY where
-  show INT = "Int"
-  show BOOL = "Bool"
-  show (LISTty t) = "List "++show t
-  show (PAIRty t1 t2) = "Pair "++show t1++" "++show t2
-  show (FUN t1 t2) = show t1++" -> "++show t2
-  show (BOTTOM s) = "BOTTOM "++s
+class ShowType t where
+  showType :: t -> String
 
+instance ShowType TY where
+  showType (BOTTOM s) = "BOTTOM "++s
+  showType INT = "(Int)"
+  showType BOOL = "(Bool)"
+  showType (LISTty t) = "(List "++showType t++")"
+  showType (PAIRty t1 t2) = "(Pair "++showType t1++" "++showType t2++")"
+  showType (FUN t1 t2) = "(" ++ (toTypeStyle.args $ (FUN t1 t2))
+    where
+      -- can't use higher order function
+      -- a in a -> b is always int,bool,list,pair.
+      args (FUN a b) = a : args b
+      args others    = [others]
+      toTypeStyle (a:[]) = ")" ++ showType a
+      toTypeStyle (a:as) = showType a ++ toTypeStyle as
 
 
 data Program = Program [Sentence] deriving (Show,Read)
@@ -41,15 +50,18 @@ data Expr = NAT Int
           | ABS   {var::String, ty::TY, e::Expr} 
           | FOLDR {f::Expr, e::Expr}
           | EOF
-            deriving (Read)
+            deriving (Show,Read)
 
-instance Show Expr where
-  show (NAT a) = show a
-  show (B a) = show a
-  show (VAR a) = a
-  show (PAIR a b) = "(" ++ show a ++ "," ++ show b ++ ")"
+class ShowExpr f where
+  showExpr :: f -> String
+
+instance ShowExpr Expr where
+  showExpr (NAT a) = show a
+  showExpr (B True) = "true"
+  showExpr (B False) = "false"
+  showExpr (VAR a) = a
+  showExpr (PAIR a b) = "(mk-pair " ++ showExpr a ++ " " ++ showExpr b ++ ")"
 
 -- main = do
---   print $ NAT 100
---   print $ VAR "f"
---   print $ PAIR (NAT 100) (NAT 300)
+  -- print $ showType $ FUN INT (FUN INT (PAIRty INT INT))
+  -- print $ showType $ FUN INT (FUN INT INT)
