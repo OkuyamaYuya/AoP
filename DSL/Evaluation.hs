@@ -28,19 +28,21 @@ declareConst x typ v = a1 ++ "\n" ++ a2
     a1 = "(declare-const " ++ x ++ " " ++ showType typ ++ ")"
     a2 = "(assert (= " ++ x ++ " " ++ showExpr v ++ "))"
 
--- (declare-const x typ)
--- (assert (= x v))
-declareFun x typ v = a1 ++ "\n" ++ a2 ++ "\n" ++ a3
+-- (declare-fun f ((t1) (t2) .. ) (tn))
+-- (assert (forall ((x1 t1) (x2 t2) ..)
+--         (= (f x1 x2 ..) (hoge x1 x2))))
+declareFun f typ v = a1 ++ "\n" ++ a2 ++ "\n" ++ a3
   where
-    a1 = "(declare-fun " ++ x ++ " " ++ showType typ ++ ")"
+    a1 = "(declare-fun " ++ f ++ " " ++ showType typ ++ ")"
     a2 = "(assert (forall (" ++ (argsTuple typ) ++ ")"
-    a3 = ""
-    argsTuple as = concat $ zipWith aux argSequence ((fmap showType).init.args $ as)
-      where
-        aux x t = "(" ++ x ++ " " ++ t ++ ")"
-        argSequence = fmap (\i -> "x" ++ show i) [1..]
-        args (FUN a b) = a : args b
-        args others    = [others]
+    a3 = "(= " ++ mkApp f ++ mkApp (showExpr v) ++ ")))"
+    argsTuple as = concat $ zipWith aux argSequence (args $ as)
+      where aux x t = "(" ++ x ++ t ++ ")"
+    sz = length (args typ)
+    mkApp f = "(" ++ f ++ " " ++ (concat argSequence) ++ ")"
+    argSequence = fmap (\i -> "x" ++ show i ++ " ") [1..sz]
+    args (FUN a b) = showType a : args b
+    args _         = []
 
 
 
@@ -50,7 +52,7 @@ ss = [ "",
        "x : Int = 1",
        "b : Bool = True",
        "p1 :(Pair Int Int) = (1,2)",
-       "f1 : Int -> (List Int) -> List Int = cons",
+       "f1 : Int -> (List Int) -> List Int = insert",
        "pairPlus : (Pair Int Int)->(Pair Int Int)->(Pair Int Int) ="++
        "\\p1:(Pair Int Int). \\p2:(Pair Int Int). (fst p1,snd p2)",
        -- "sum : (List Int) -> Int = foldr plus 0",
