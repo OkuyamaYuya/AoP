@@ -39,9 +39,9 @@ tycheck prog = case prog of
                           Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
                           Accept envMk ->
                             let this_type = tycheck_ e envMk
-                                cod (FUN a b) = cod b
-                                cod a         = a
-                            in if cod t == this_type
+                                cod x [] = x
+                                cod (FUN x xs) (a:funArgs) = cod xs funArgs
+                            in if cod t as == this_type
                                then Accept (envAdd x t env)
                                else Reject (show e++" "++show this_type++
                                             " doesn't matches "++
@@ -106,13 +106,13 @@ tycheck_ e env = case e of
 mkEnv :: [String] -> TY -> ENV_ty -> Result ENV_ty
 mkEnv []      funType env = Accept env
 mkEnv funArgs funType env =
-  let newEnv = (fromList $ zip funArgs (args funType))
+  let newEnv = (fromList $ zip funArgs (types funType))
       intersect = intersection newEnv env
   in if intersect == Map.empty then Accept $ union newEnv env
      else Reject $ "argument " ++ (fst.head.toList) intersect ++ " isn't valid."
   where
-    args (FUN a b) = a : args b
-    args _         = []
+    types (FUN a b) = a : types b
+    types _         = []
 
 envLook :: Expr -> ENV_ty -> TY
 envLook (VAR str) env =
