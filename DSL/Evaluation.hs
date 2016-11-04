@@ -18,7 +18,7 @@ eval_ (BIND varName varType varExpr) = case varExpr of
   NAT _ -> (declareConst varName varType varExpr)
   B _   -> (declareConst varName varType varExpr)
   PAIR _ _ -> (declareConst varName varType varExpr)
-  VAR _ -> (declareConst varName varType varExpr)
+  VAR _ -> (declareFun varName varType varExpr)
   _ -> ""
 
 -- (declare-const x typ)
@@ -27,6 +27,24 @@ declareConst x typ v = a1 ++ "\n" ++ a2
   where
     a1 = "(declare-const " ++ x ++ " " ++ showType typ ++ ")"
     a2 = "(assert (= " ++ x ++ " " ++ showExpr v ++ "))"
+
+-- (declare-const x typ)
+-- (assert (= x v))
+declareFun x typ v = a1 ++ "\n" ++ a2 ++ "\n" ++ a3
+  where
+    a1 = "(declare-fun " ++ x ++ " " ++ showType typ ++ ")"
+    a2 = "(assert (forall (" ++ (argsTuple typ) ++ ")"
+    a3 = ""
+    argsTuple as = concat $ zipWith aux argSequence ((fmap showType).init.args $ as)
+      where
+        aux x t = "(" ++ x ++ " " ++ t ++ ")"
+        argSequence = fmap (\i -> "x" ++ show i) [1..]
+        args (FUN a b) = a : args b
+        args others    = [others]
+
+
+
+
 
 ss = [ "",
        "x : Int = 1",
