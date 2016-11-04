@@ -11,7 +11,7 @@ evalFile s = eval.parse.scanTokens <$> readFile s
 
 eval prog = case prog of
   Reject err -> show err
-  Accept (Program ss) -> unlines $ fmap eval_ ss
+  Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss)
 
 eval_ CommentOut = ""
 eval_ (BIND varName varType varExpr) = case varExpr of
@@ -44,15 +44,18 @@ declareFun f typ v = a1 ++ "\n" ++ a2 ++ "\n" ++ a3
     args (FUN a b) = showType a : args b
     args _         = []
 
-
-
-
+header = "\
+\(declare-datatypes (T1 T2) ((Pair (mk-pair (first T1) (second T2)))))\n\
+\(define-fun cons ((x Int) (xs (List Int))) (List Int)\n\
+\  (insert x xs))\n\
+\(define-fun outr ((x Int) (xs (List Int))) (List Int)\n\
+\  xs)"
 
 ss = [ "",
        "x : Int = 1",
        "b : Bool = True",
        "p1 :(Pair Int Int) = (1,2)",
-       "f1 : Int -> (List Int) -> List Int = insert",
+       "f1 : Int -> (List Int) -> List Int = cons",
        "pairPlus : (Pair Int Int)->(Pair Int Int)->(Pair Int Int) ="++
        "\\p1:(Pair Int Int). \\p2:(Pair Int Int). (fst p1,snd p2)",
        -- "sum : (List Int) -> Int = foldr plus 0",
