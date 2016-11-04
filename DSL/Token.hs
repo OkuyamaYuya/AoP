@@ -28,5 +28,6 @@ data Token = Int Int
            | Assign
            | Foldr
            | CommentOut
+           | Basetype
            | Eol
            deriving (Show,Eq)

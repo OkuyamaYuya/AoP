@@ -86,11 +86,12 @@ declareRecFun recfun typ (FOLDR (VAR f) e) = unlines [a1,a2,a3,a4,a5]
     dom (FUN a b) = a
 declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
+-- Types of cons,outr,nil depend on a problem user defines.
 header = unlines [ "",
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
-    "(define-fun cons ((x Int) (xs (List Int))) (List Int)",
+    "(define-fun cons ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
     "  (insert x xs))",
-    "(define-fun outr ((x Int) (xs (List Int))) (List Int)",
+    "(define-fun outr ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
     "  xs)" ]
 
 

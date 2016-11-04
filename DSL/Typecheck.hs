@@ -12,15 +12,15 @@ type ENV_ty = Map String TY
 
 ------------------------
 fa a b = FUN a (FUN b b)
-default_env = fromList [ ("nil"  ,(LISTty INT)),
-                         ("cons" ,fa INT (LISTty INT)),
-                         ("outr" ,fa INT (LISTty INT)),
+default_env a = fromList[("nil"  ,(LISTty a)),
+                         ("cons" ,fa a (LISTty a)),
+                         ("outr" ,fa a (LISTty a)),
                          ("plus" ,fa INT INT),
                          ("fst"  ,FUN (PAIRty INT INT) INT),
                          ("snd"  ,FUN (PAIRty INT INT) INT),
                          ("leq"  ,FUN INT (FUN INT BOOL)),
-                         ("leq_lexico"  ,FUN (LISTty INT) (FUN (LISTty INT) BOOL)),
-                         (""     ,BOTTOM "") ]
+                         ("leq_lexico" ,FUN (LISTty INT) (FUN (LISTty INT) BOOL)),
+                         (""     ,BOTTOM "")]
 ------------------------
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
@@ -28,24 +28,30 @@ tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 tycheck prog = case prog of
   Reject err -> Reject err
   Accept (Program ss) ->
-              Prelude.foldl aux (Accept default_env) ss
-                where
-                  aux (Reject a) _ = Reject a
-                  aux (Accept env) s =
-                    case s of
-                      CommentOut -> Accept env
-                      BIND x as t e ->
-                        case (mkEnv as t env) of
-                          Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
-                          Accept envMk ->
-                            let this_type = tycheck_ e envMk
-                                cod x [] = x
-                                cod (FUN x xs) (a:funArgs) = cod xs funArgs
-                            in if cod t as == this_type
-                               then Accept (envAdd x t env)
-                               else Reject (show e++" "++show this_type++
-                                            " doesn't matches "++
-                                            show t++" in "++show s)
+    case (lookupBtype ss) of
+    Nothing -> Reject "You have to write BASETYPE."
+    Just basetype ->
+      Prelude.foldl aux (Accept $ default_env basetype) ss
+        where
+          aux (Reject a) _ = Reject a
+          aux (Accept env) s =
+            case s of
+             BIND x as t e ->
+               case (mkEnv as t env) of
+                 Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
+                 Accept envMk ->
+                   let this_type = tycheck_ e envMk
+                       cod x [] = x
+                       cod (FUN x xs) (a:funArgs) = cod xs funArgs
+                   in if cod t as == this_type
+                      then Accept (envAdd x t env)
+                      else Reject (show e++" "++show this_type++
+                                   " doesn't matches "++
+                                   show t++" in "++show s)
+             _ -> Accept env
+
+lookupBtype _ = Just A
+
 
 tycheck_ e env = case e of
   NAT n -> INT
@@ -59,7 +65,8 @@ tycheck_ e env = case e of
                             then LISTty t1 
                             else BOTTOM "List type error"
   GET e1 e2   -> let t1 = tycheck_ e1 env in
-                 if (tycheck_ e2 env) /= INT then BOTTOM "type error : list[i], i must be Int type."
+                 if (tycheck_ e2 env) /= INT 
+                 then BOTTOM "type error : list[i], i must be Int type."
                  else 
                     case t1 of
                       LISTty a -> a
@@ -76,7 +83,8 @@ tycheck_ e env = case e of
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
                     FUN t1 t2 -> let t3 = tycheck_ e2 env in
-                                  if t1 == t3 then t2 else BOTTOM "apply e1 e2 : types not match"
+                                  if t1 == t3 then t2 
+                                  else BOTTOM "apply e1 e2 : types not match"
                     _ -> BOTTOM "apply e1 e2 : types not match"
   PLUS  e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
                   then INT 
@@ -123,7 +131,7 @@ envLook (VAR str) env =
 envAdd :: String -> TY -> ENV_ty -> ENV_ty
 envAdd x e env = Map.insert x e env
 
--- main :: IO()
--- main = do
---   print $ tycheck.parse.scanTokens $ "f x : Int -> Int = x + 1"
---   print $ tycheck.parse.scanTokens $ "f nil : Int -> Int = nil + 1"
+main :: IO()
+main = do
+  -- print $ tycheck.parse.scanTokens $ "f x : Int -> Int = x + 1"
+  print $ tycheck.parse.scanTokens $ "e1 : (List Int) = nil"

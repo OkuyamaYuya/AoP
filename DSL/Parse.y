@@ -39,6 +39,7 @@ import qualified Token as T
   tyList { T.TyList }
   tyPair { T.TyPair }
   '--' { T.CommentOut }
+  BASETYPE { T.Basetype }
   eol { T.Eol  }
 
 %right '->'
@@ -63,6 +64,7 @@ Sentence :
     '--' All                 { S.CommentOut }
   | var ':' Type '=' Expr    { S.BIND $1 [] $3 $5 }
   | var Args ':' Type '=' Expr    { S.BIND $1 $2 $4 $6 }
+  | BASETYPE ':' Type        { S.BASETYPE $3 }
 
 Args :
     var { [$1] }

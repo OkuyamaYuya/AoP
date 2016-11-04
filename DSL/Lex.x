@@ -39,6 +39,7 @@ tokens :-
     ":" { \s -> T.Colon }
     "=" { \s -> T.Assign }
     "--" { \s -> T.CommentOut }
+    "BASETYPE" { \s -> T.Basetype }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {

@@ -5,6 +5,7 @@ data TY  = INT
          | LISTty TY
          | PAIRty TY TY
          | FUN TY TY 
+         | A
          | BOTTOM String 
            deriving (Show,Read,Eq)
 
@@ -30,6 +31,7 @@ instance ShowType TY where
 data Program = Program [Sentence] deriving (Show,Read)
 
 data Sentence = BIND {name::String, args::[String] , ty2::TY, e2::Expr} 
+              | BASETYPE TY
               | CommentOut
                 deriving (Show,Read)
 
@@ -65,4 +67,4 @@ instance ShowExpr Expr where
   showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
 
 -- main = do
---   print $ showExpr $ (APP (APP (VAR "leq") (VAR "p2")) (VAR "p1"))
+  -- print $ showExpr $ (APP (APP (VAR "leq") (VAR "p2")) (VAR "p1"))
