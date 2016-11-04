@@ -28,13 +28,14 @@ main = do
   mapM_ print ls
   -- putStr "\n"
   -- print "type"
+  print "type check"
   let res_p = parse.scanTokens $ s in
     case res_p of
      Reject err -> putStrLn $ show err
      _ -> let res_t = tycheck res_p in
           case res_t of
             Reject err -> putStrLn err
-            Accept _ -> print "type check OK"
+            Accept _ -> putStrLn "OK"
             -- True -> let res_e = eval res_p in putStrLn $ show res_e
 
 
