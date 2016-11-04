@@ -30,18 +30,28 @@
         (= true (r a b))
         (= false (r a b)))))
 
-; not forall xs,ys,a . xs `r` ys => (a:xs) `r` (a:ys)
-;(assert (not (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))
-;          (=> (r xs ys) (r (insert a xs) (insert a ys))))))
-
-; forall a,xs,ys . xs `r` ys and p?xs and p?ys
-;                  => p?(a:xs) and p?(a:ys)
-;                  => p?(a:xs) `r` p?(a:ys)
+; check for cons
+; forall a,xs,ys . ys `r` xs
+;                  => p?(a:ys)
+;                  => (p?(a:xs) and (a:ys) `r` (a:xs)) or (p?(xs) and (a:ys) `r` xs)
 (assert (not 
         (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))
-        (=> (and (r xs ys) (p? xs) (p? ys))
-        (=> (and (p? (insert a xs)) (p? (insert a ys)))
-            (r (insert a xs) (insert a ys)))))))
+        (=> (r ys xs) 
+        (=> (p? (insert a ys))
+            (or (and (p? (insert a xs)) (r (insert a ys) (insert a xs)))
+                (and (p? xs) (r (insert a ys) xs))))))))
+
+
+; check for outr
+; forall a,xs,ys . ys `r` xs
+;                  => p?(ys)
+;                  => (p?(a:xs) and ys `r` (a:xs)) or (p?(xs) and ys `r` xs)
+(assert (not 
+        (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))
+        (=> (r ys xs) 
+        (=> (p? ys)
+            (or (and (p? (insert a xs)) (r ys (insert a xs)))
+                (and (p? xs) (r ys xs))))))))
 
 (check-sat)
 
