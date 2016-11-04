@@ -5,7 +5,6 @@ data TY  = INT
          | LISTty TY
          | PAIRty TY TY
          | FUN TY TY 
-         | A
          | BOTTOM String 
            deriving (Show,Read,Eq)
 

@@ -50,7 +50,9 @@ tycheck prog = case prog of
                                    show t++" in "++show s)
              _ -> Accept env
 
-lookupBtype _ = Just A
+lookupBtype [] = Nothing
+lookupBtype ((BASETYPE b):_) = Just b
+lookupBtype (_:xs) = lookupBtype xs
 
 
 tycheck_ e env = case e of
@@ -134,4 +136,4 @@ envAdd x e env = Map.insert x e env
 main :: IO()
 main = do
   -- print $ tycheck.parse.scanTokens $ "f x : Int -> Int = x + 1"
-  print $ tycheck.parse.scanTokens $ "e1 : (List Int) = nil"
+  print $ tycheck.parse.scanTokens $ "BASETYPE:Int\ne1 : (List Int) = nil"

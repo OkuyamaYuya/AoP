@@ -13,6 +13,7 @@ eval prog = case prog of
   Reject err -> show err
   Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss) ++ "\n(check-sat)"
 
+eval_ (BASETYPE _) = ""
 eval_ CommentOut = ""
 eval_ (BIND varName varArgs varType varExpr) = case varExpr of
   NAT _ -> declareConst varName varType varExpr

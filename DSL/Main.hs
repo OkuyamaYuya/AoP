@@ -10,6 +10,7 @@ import System.Environment (getArgs)
 
 prettyPrint s = case s of
   CommentOut -> return ()
+  BASETYPE bt -> putStrLn $ "BASETYPE\n\t" ++ showType bt ++ "\n"
   BIND n as t e -> do
     putStrLn $ "name\n\t" ++ show n
     putStrLn $ "args\n\t" ++ show as
