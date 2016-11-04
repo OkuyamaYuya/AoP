@@ -16,6 +16,8 @@ instance Show TY where
   show (FUN t1 t2) = show t1++" -> "++show t2
   show (BOTTOM s) = "BOTTOM "++s
 
+
+
 data Program = Program [Sentence] deriving (Show,Read)
 
 data Sentence = BIND {name::String, ty2::TY, e2::Expr} 
@@ -39,11 +41,15 @@ data Expr = NAT Int
           | ABS   {var::String, ty::TY, e::Expr} 
           | FOLDR {f::Expr, e::Expr}
           | EOF
-            deriving (Show,Read)
+            deriving (Read)
+
+instance Show Expr where
+  show (NAT a) = show a
+  show (B a) = show a
+  show (VAR a) = a
+  show (PAIR a b) = "(" ++ show a ++ "," ++ show b ++ ")"
 
 -- main = do
---   print $ INT
---   print $ BOOL
---   print $ LISTty INT
---   print $ PAIRty INT INT
---   print $ FUN INT (FUN INT INT)
+--   print $ NAT 100
+--   print $ VAR "f"
+--   print $ PAIR (NAT 100) (NAT 300)
