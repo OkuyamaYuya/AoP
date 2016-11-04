@@ -25,8 +25,8 @@ tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
 tycheck prog = case prog of
   Reject err -> Reject err
-  Accept ps  -> let Program ss = ps
-                in Prelude.foldl aux (Accept default_env) ss
+  Accept (Program ss) ->
+              Prelude.foldl aux (Accept default_env) ss
                 where
                   aux (Reject a) _ = Reject a
                   aux (Accept env) s =

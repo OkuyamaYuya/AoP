@@ -1,12 +1,20 @@
 module Syntax where
 
-data TY  = INT 
-         | BOOL 
+data TY  = INT
+         | BOOL
          | LISTty TY
          | PAIRty TY TY
          | FUN TY TY 
          | BOTTOM String 
-           deriving (Show,Read,Eq)
+           deriving (Read,Eq)
+
+instance Show TY where
+  show INT = "Int"
+  show BOOL = "Bool"
+  show (LISTty t) = "List "++show t
+  show (PAIRty t1 t2) = "Pair "++show t1++" "++show t2
+  show (FUN t1 t2) = show t1++" -> "++show t2
+  show (BOTTOM s) = "BOTTOM "++s
 
 data Program = Program [Sentence] deriving (Show,Read)
 
@@ -33,3 +41,9 @@ data Expr = NAT Int
           | EOF
             deriving (Show,Read)
 
+-- main = do
+--   print $ INT
+--   print $ BOOL
+--   print $ LISTty INT
+--   print $ PAIRty INT INT
+--   print $ FUN INT (FUN INT INT)
