@@ -34,12 +34,18 @@ tycheck prog = case prog of
                   aux (Accept env) s =
                     case s of
                       CommentOut -> Accept env
-                      BIND x t e ->
-                        let s_type = tycheck_ e env in
-                        if t == s_type
-                        then Accept (envAdd x t env)
-                        else Reject (show e++" "++show s_type++
-                                      " doesn't matches "++show t++" in "++show s)
+                      BIND x as t e ->
+                        case (mkEnv as t env) of
+                          Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
+                          Accept envMk ->
+                            let this_type = tycheck_ e envMk
+                                cod (FUN a b) = cod b
+                                cod a         = a
+                            in if cod t == this_type
+                               then Accept (envAdd x t env)
+                               else Reject (show e++" "++show this_type++
+                                            " doesn't matches "++
+                                            show t++" in "++show s)
 
 tycheck_ e env = case e of
   NAT n -> INT
@@ -96,6 +102,18 @@ tycheck_ e env = case e of
                     else BOTTOM "(||)::BOOL->BOOL->BOOL"
   _ -> BOTTOM "error"
 
+-- f x y : a -> b -> c = x + y
+mkEnv :: [String] -> TY -> ENV_ty -> Result ENV_ty
+mkEnv []      funType env = Accept env
+mkEnv funArgs funType env =
+  let newEnv = (fromList $ zip funArgs (args funType))
+      intersect = intersection newEnv env
+  in if intersect == Map.empty then Accept $ union newEnv env
+     else Reject $ "argument " ++ (fst.head.toList) intersect ++ " isn't valid."
+  where
+    args (FUN a b) = a : args b
+    args _         = []
+
 envLook :: Expr -> ENV_ty -> TY
 envLook (VAR str) env =
   case Map.lookup str env of
@@ -107,6 +125,5 @@ envAdd x e env = Map.insert x e env
 
 -- main :: IO()
 -- main = do
---   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
---   print $ tycheck.parse.scanTokens $ "let f : Int -> (List Int) = \\n : Int. if n == 0 then [0,0,0,0] else [1,2,3,4]"
-  -- print $ tycheck.parse.scanTokens $ "let sum : (List Int) -> Int = foldr plus 0"
+--   print $ tycheck.parse.scanTokens $ "f x : Int -> Int = x + 1"
+--   print $ tycheck.parse.scanTokens $ "f nil : Int -> Int = nil + 1"
