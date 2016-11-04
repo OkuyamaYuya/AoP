@@ -11,7 +11,7 @@ import Debug.Trace
 type ENV_ty = Map String TY
 
 fa a b = FUN a (FUN b b)
-default_env = fromList [ ("nil"  ,fa INT (LISTty INT)),
+default_env = fromList [ ("nil"  ,(LISTty INT)),
                          ("cons" ,fa INT (LISTty INT)),
                          ("outr" ,fa INT (LISTty INT)),
                          ("plus" ,fa INT INT),

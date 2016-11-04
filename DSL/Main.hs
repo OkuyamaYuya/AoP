@@ -5,16 +5,8 @@ import Lex
 import Parse
 import Typecheck
 import Syntax
--- import Evaluation
+import Evaluation
 import System.Environment (getArgs)
-
--- ss = [ "b : Int = 1",
---        "p1 : Pair Int Int = (1,2)",
---        "f : Int->Int = \\a:Int.3",
---        "w : List Int = [1,2,3,4]", 
---        "f1 : Int -> (List Int) -> List Int = cons",
---        "sum : (List Int) -> Int = foldr plus 0",
---        "" ]
 
 prettyPrint s = case s of
   CommentOut -> return ()
@@ -27,23 +19,23 @@ prettyPrint s = case s of
 main::IO()
 main = do
   s <- (head <$> getArgs) >>= readFile
-  -- let s = unlines ss
-  -- print "lex"
-  -- print $ scanTokens $ s
-  -- putStr "\n"
+
   putStrLn "--syntax--"
   let (Accept ( Program ls)) = parse.scanTokens $ s
   mapM_ prettyPrint ls
-  -- putStr "\n"
-  -- print "type"
-  putStrLn "--type check--"
-  let res_p = parse.scanTokens $ s in
-    case res_p of
+
+  -- type check & generate
+  let resultParse = parse.scanTokens $ s in
+    case resultParse of
      Reject err -> putStrLn $ show err
-     _ -> let res_t = tycheck res_p in
-          case res_t of
+     _ -> let resultTyCheck = tycheck resultParse in
+          case resultTyCheck of
             Reject err -> putStrLn err
-            Accept _ -> putStrLn "OK"
-            -- True -> let res_e = eval res_p in putStrLn $ show res_e
+            Accept _ -> do
+              putStrLn "--type check--\nOK"
+              putStrLn "--z3 code--"
+              let resultEval = eval resultParse
+              putStrLn resultEval
+              writeFile "./test.z3" resultEval
 
 
