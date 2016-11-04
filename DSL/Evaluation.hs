@@ -14,14 +14,13 @@ eval prog = case prog of
   Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss) ++ "\n(check-sat)"
 
 eval_ CommentOut = ""
-eval_ (BIND varName varType varExpr) = case varExpr of
+eval_ (BIND varName varArgs varType varExpr) = case varExpr of
   NAT _ -> declareConst varName varType varExpr
   B _   -> declareConst varName varType varExpr
   PAIR _ _ -> declareConst varName varType varExpr
   VAR _ -> case varType of
             FUN _ _ -> declareFun varName varType varExpr
             _       -> declareConst varName varType varExpr
-  ABS _ _ _ -> defineFun varName varType varExpr
   _ -> ""
 
 -- (declare-const x typ)

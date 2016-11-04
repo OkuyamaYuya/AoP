@@ -5,7 +5,7 @@ import Lex
 import Parse
 import Typecheck
 import Syntax
--- import Evaluation
+import Evaluation
 import System.Environment (getArgs)
 
 prettyPrint s = case s of
@@ -34,9 +34,9 @@ main = do
             Reject err -> putStrLn $ "type error\n" ++ err
             Accept _ -> do
               putStrLn "--type check--\nOK"
-              -- putStrLn "--z3 code--"
-              -- let resultEval = eval resultParse
-              -- putStrLn resultEval
-              -- writeFile "./test.z3" resultEval
+              putStrLn "--z3 code--"
+              let resultEval = eval resultParse
+              putStrLn resultEval
+              writeFile "./test.z3" resultEval
 
 
