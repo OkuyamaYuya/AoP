@@ -4,6 +4,7 @@
 ; example => (declare-const p1 (Pair Int Int))
 (declare-datatypes (T1 T2) ((Pair (mk-pair (first T1) (second T2)))))
 
+
 ; pair-plus
 ; example => (1,2) + (4,2) = (5,4)
 (define-fun pair-plus ((x (Pair Int Int)) (y (Pair Int Int))) (Pair Int Int)

@@ -60,8 +60,9 @@ instance ShowExpr Expr where
   showExpr (B False) = "false"
   showExpr (VAR a) = a
   showExpr (PAIR a b) = "(mk-pair " ++ showExpr a ++ " " ++ showExpr b ++ ")"
-  showExpr (APP a b) = showExpr a ++ " " ++ showExpr b
-  showExpr (PLUS a b) = "(+ (" ++ showExpr a ++ ") (" ++ showExpr b ++ "))"
+  showExpr (PLUS a b) = "(+ " ++ showExpr a  ++ showExpr b ++ ")"
+  showExpr (APP (APP a b) c) = "(" ++ showExpr a ++ " " ++ showExpr b ++ " " ++ showExpr c ++ ")"
+  showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
 
 -- main = do
-  -- print $ showExpr $ PAIR (PLUS (APP (VAR "fst") (VAR "p1")) (APP (VAR "fst") (VAR "p2"))) (PLUS (APP (VAR "snd") (VAR "p1")) (APP (VAR "snd") (VAR "p2")))
+--   print $ showExpr $ (APP (APP (VAR "leq") (VAR "p2")) (VAR "p1"))

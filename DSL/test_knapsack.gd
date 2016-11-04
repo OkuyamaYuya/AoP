@@ -21,5 +21,3 @@ knapQ a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
 e1 : (List Int) = nil
 f1 : Int -> (List Int) -> (List Int) = cons
 f2 : Int -> (List Int) -> (List Int) = outr
-
-p1 : Pair Int Int = (1,2)
