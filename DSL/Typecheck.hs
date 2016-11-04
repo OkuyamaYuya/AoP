@@ -67,7 +67,6 @@ tycheck_ e env = case e of
                     | b == (tycheck_ e env) && b == c -> FUN (LISTty a) b
                     | otherwise -> BOTTOM $ "e's type in fold isn't correct."++(show b)
                   _ -> BOTTOM "f's type is not correct."
-  ABS x t1 e -> let t2 = tycheck_ e (envAdd x t1 env) in FUN t1 t2
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
                     FUN t1 t2 -> let t3 = tycheck_ e2 env in

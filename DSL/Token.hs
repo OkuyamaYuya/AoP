@@ -22,7 +22,6 @@ data Token = Int Int
            | TyList
            | TyPair
            | Arrow
-           | Lambda
            | Dot
            | Colon
            | Comma

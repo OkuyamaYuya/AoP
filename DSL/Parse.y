@@ -34,12 +34,11 @@ import qualified Token as T
   ':' { T.Colon }
   '=' { T.Assign }
   '->' { T.Arrow }
-  '--' { T.CommentOut }
-  lambda { T.Lambda }
   tyInt  { T.TyInt }
   tyBool { T.TyBool }
   tyList { T.TyList }
   tyPair { T.TyPair }
+  '--' { T.CommentOut }
   eol { T.Eol  }
 
 %right '->'
@@ -62,9 +61,12 @@ Sentences :
 
 Sentence :
     '--' All                 { S.CommentOut }
-  | var ':' Type '=' Expr    { S.BIND $1 $3 $5 }
+  | var ':' Type '=' Expr    { S.BIND $1 [] $3 $5 }
+  | var Args ':' Type '=' Expr    { S.BIND $1 $2 $4 $6 }
 
-
+Args :
+    var { [$1] }
+  | var Args { $1 : $2 }
 Expr : 
     foldr Expr_ Expr_  { S.FOLDR $2 $3 }
   | Expr_ { $1 }
@@ -81,7 +83,6 @@ Expr_ :
   | int                     { S.NAT $1 }
   | var                     { S.VAR $1 }
   | bool                    { S.B $1 }
-  | lambda var ':' Type '.' Expr       { S.ABS $2 $4 $6 }
   | if Expr then Expr else Expr        { S.IF $2 $4 $6 }
   | '[' Sequence  ']'     { S.LIST $2 }
   | '(' Expr ',' Expr ')' { S.PAIR $2 $4 }
@@ -127,7 +128,6 @@ All_ :
   | '=' { }
   | '->' { }
   | '--' { }
-  | lambda { }
   | tyInt  { }
   | tyBool { }
   | tyList { }

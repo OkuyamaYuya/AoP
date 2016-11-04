@@ -66,8 +66,7 @@ ss = [ "",
        "b : Bool = True",
        "p1 :(Pair Int Int) = (1,2)",
        "f1 : Int -> (List Int) -> List Int = cons",
-       "pairPlus : (Pair Int Int)->(Pair Int Int)->(Pair Int Int) =\
-        \\\p1:(Pair Int Int). \\p2:(Pair Int Int). (fst p1,snd p2)",
+       "pairPlus p1 p2 : (Pair Int Int)->(Pair Int Int)->(Pair Int Int) = (fst p1,snd p2)",
        -- "sum : (List Int) -> Int = foldr plus 0",
        "" ]
 

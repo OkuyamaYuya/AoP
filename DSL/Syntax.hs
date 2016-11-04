@@ -29,7 +29,7 @@ instance ShowType TY where
 
 data Program = Program [Sentence] deriving (Show,Read)
 
-data Sentence = BIND {name::String, ty2::TY, e2::Expr} 
+data Sentence = BIND {name::String, args::[String] , ty2::TY, e2::Expr} 
               | CommentOut
                 deriving (Show,Read)
 
@@ -46,8 +46,7 @@ data Expr = NAT Int
           | LIST [Expr]
           | PAIR Expr Expr
           | GET Expr Expr
-          | IF    {cond::Expr, tru::Expr, fal::Expr} 
-          | ABS   {var::String, ty::TY, e::Expr} 
+          | IF    {cond::Expr,  tru::Expr, fal::Expr} 
           | FOLDR {f::Expr, e::Expr}
           | EOF
             deriving (Show,Read)
