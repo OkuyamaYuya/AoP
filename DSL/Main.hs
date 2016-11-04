@@ -16,6 +16,14 @@ import System.Environment (getArgs)
 --        "sum : (List Int) -> Int = foldr plus 0",
 --        "" ]
 
+prettyPrint s = case s of
+  CommentOut -> return ()
+  BIND n t e -> do
+    putStrLn $ "name\n\t" ++ show n
+    putStrLn $ "type\n\t" ++ show t
+    putStrLn $ "expr\n\t" ++ show e
+    putStrLn "\n"
+
 main::IO()
 main = do
   s <- (head <$> getArgs) >>= readFile
@@ -23,12 +31,12 @@ main = do
   -- print "lex"
   -- print $ scanTokens $ s
   -- putStr "\n"
-  print "syntax"
+  putStrLn "--syntax--"
   let (Accept ( Program ls)) = parse.scanTokens $ s
-  mapM_ print ls
+  mapM_ prettyPrint ls
   -- putStr "\n"
   -- print "type"
-  print "type check"
+  putStrLn "--type check--"
   let res_p = parse.scanTokens $ s in
     case res_p of
      Reject err -> putStrLn $ show err
