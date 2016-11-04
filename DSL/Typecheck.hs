@@ -10,6 +10,7 @@ import Debug.Trace
 
 type ENV_ty = Map String TY
 
+------------------------
 fa a b = FUN a (FUN b b)
 default_env = fromList [ ("nil"  ,(LISTty INT)),
                          ("cons" ,fa INT (LISTty INT)),
@@ -20,6 +21,7 @@ default_env = fromList [ ("nil"  ,(LISTty INT)),
                          ("leq"  ,FUN INT (FUN INT BOOL)),
                          ("leq_lexico"  ,FUN (LISTty INT) (FUN (LISTty INT) BOOL)),
                          (""     ,BOTTOM "") ]
+------------------------
 
 tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 

@@ -15,12 +15,13 @@ eval prog = case prog of
 
 eval_ CommentOut = ""
 eval_ (BIND varName varType varExpr) = case varExpr of
-  NAT _ -> (declareConst varName varType varExpr)
-  B _   -> (declareConst varName varType varExpr)
-  PAIR _ _ -> (declareConst varName varType varExpr)
+  NAT _ -> declareConst varName varType varExpr
+  B _   -> declareConst varName varType varExpr
+  PAIR _ _ -> declareConst varName varType varExpr
   VAR _ -> case varType of
-            FUN _ _ -> (declareFun varName varType varExpr)
-            _       -> (declareConst varName varType varExpr)
+            FUN _ _ -> declareFun varName varType varExpr
+            _       -> declareConst varName varType varExpr
+  ABS _ _ _ -> defineFun varName varType varExpr
   _ -> ""
 
 -- (declare-const x typ)
@@ -46,12 +47,19 @@ declareFun f typ v = a1 ++ "\n" ++ a2 ++ "\n" ++ a3
     args (FUN a b) = showType a : args b
     args _         = []
 
+
+-- (define-fun f ((x t1) (y t2)) t3 
+--   hogehoge )
+defineFun f typ expr = ""
+
+
 header = "\
-\(declare-datatypes (T1 T2) ((Pair (mk-pair (first T1) (second T2)))))\n\
+\(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))\n\
 \(define-fun cons ((x Int) (xs (List Int))) (List Int)\n\
 \  (insert x xs))\n\
 \(define-fun outr ((x Int) (xs (List Int))) (List Int)\n\
 \  xs)"
+
 
 ss = [ "",
        "x : Int = 1",
