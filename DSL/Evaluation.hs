@@ -19,7 +19,7 @@ eval prog = case prog of
     case getFunsBtype ss of
       Reject err -> show err
       Accept (fs,bt) ->
-        header ++ (unlines $ fmap eval_ ss)
+        header bt ++ (unlines $ fmap eval_ ss)
         ++ makeQuery fs bt ++"\n(check-sat)"
 
 getFunsBtype :: [Sentence] -> Result ([String],TY)
@@ -109,16 +109,17 @@ declareRecFun recfun typ (FOLDR (VAR f) e) = unlines [a1,a2,a3,a4,a5]
     dom (FUN a b) = a
 declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
+
 -- Types of cons,outr,nil depend on a problem user defines.
-header = unlines [ "",
+header bt = unlines [ "",
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
-    "(define-fun cons ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
+    "(define-fun cons ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
     "  (insert x xs))",
-    "(define-fun outr ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
+    "(define-fun outr ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
     "  xs)",
     "(declare-fun leq (Int Int) Bool)",
     "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))",
-    "(declare-fun leq_lexico (Int Int) Bool)",
+    "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
     ""]
 
 makeQuery :: [String] -> TY -> String
