@@ -13,8 +13,8 @@ class ShowType t where
 
 instance ShowType TY where
   showType (BOTTOM s) = "BOTTOM "++s
-  showType INT = "(Int)"
-  showType BOOL = "(Bool)"
+  showType INT = "Int"
+  showType BOOL = "Bool"
   showType (LISTty t) = "(List "++showType t++")"
   showType (PAIRty t1 t2) = "(Pair "++showType t1++" "++showType t2++")"
   showType (FUN t1 t2) = "(" ++ (toTypeStyle.args $ (FUN t1 t2))
