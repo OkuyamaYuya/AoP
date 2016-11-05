@@ -40,6 +40,8 @@ tokens :-
     "=" { \s -> T.Assign }
     "--" { \s -> T.CommentOut }
     "BASETYPE" { \s -> T.Basetype }
+    "LEFT" { \s -> T.LLabel }
+    "RIGHT" { \s -> T.RLabel }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {

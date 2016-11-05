@@ -11,6 +11,8 @@ import System.Environment (getArgs)
 prettyPrint s = case s of
   CommentOut -> return ()
   BASETYPE bt -> putStrLn $ "BASETYPE\n\t" ++ showType bt ++ "\n"
+  RIGHT   fs -> putStrLn $ "RIGHT\n\t" ++ show fs ++ "\n"
+  LEFT    fs -> putStrLn $ "LEFT\n\t" ++ show fs ++ "\n"
   BIND n as t e -> do
     putStrLn $ "name\n\t" ++ show n
     putStrLn $ "args\n\t" ++ show as
@@ -23,7 +25,7 @@ main = do
   s <- (head <$> getArgs) >>= readFile
 
   putStrLn "--syntax--"
-  let (Accept ( Program ls)) = parse.scanTokens $ s
+  let (Accept (Program ls)) = parse.scanTokens $ s
   mapM_ prettyPrint ls
 
   -- type check & generate
@@ -39,5 +41,4 @@ main = do
               let resultEval = eval resultParse
               putStrLn resultEval
               writeFile "./test.z3" resultEval
-
 

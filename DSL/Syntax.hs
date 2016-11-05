@@ -31,6 +31,8 @@ data Program = Program [Sentence] deriving (Show,Read)
 
 data Sentence = BIND {name::String, args::[String] , ty2::TY, e2::Expr} 
               | BASETYPE TY
+              | RIGHT [Expr]
+              | LEFT  [Expr]
               | CommentOut
                 deriving (Show,Read)
 

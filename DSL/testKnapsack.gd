@@ -1,6 +1,8 @@
 -- 0-1 knapsack problem
 
 BASETYPE : Pair Int Int
+LEFT     : [e1]
+RIGHT    : [f1,f2]
 
 pairPlus p1 p2 : (Pair Int Int)->(Pair Int Int)->(Pair Int Int) = (fst p1 + fst p2 , snd p1 + snd p2)
 
@@ -19,8 +21,6 @@ r a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
 
 q a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
                 (leq (sumVal a) (sumVal b)) && ((sumWt a) == (sumWt b))
-
-
 
 e1 : (List (Pair Int Int)) = nil
 f1 : (Pair Int Int) -> (List (Pair Int Int)) -> (List (Pair Int Int)) = cons

@@ -133,7 +133,6 @@ envLook (VAR str) env =
 envAdd :: String -> TY -> ENV_ty -> ENV_ty
 envAdd x e env = Map.insert x e env
 
-main :: IO()
-main = do
-  -- print $ tycheck.parse.scanTokens $ "f x : Int -> Int = x + 1"
-  print $ tycheck.parse.scanTokens $ "BASETYPE:Int\ne1 : (List Int) = nil"
+-- main :: IO()
+-- main = do
+--   print $ tycheck.parse.scanTokens $ "BASETYPE:Int\ne1 : (List Int) = nil"

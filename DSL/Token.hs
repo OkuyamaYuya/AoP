@@ -28,5 +28,7 @@ data Token = Int Int
            | Foldr
            | CommentOut
            | Basetype
+           | LLabel
+           | RLabel
            | Eol
            deriving (Show,Eq)

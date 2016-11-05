@@ -11,8 +11,12 @@ evalFile s = eval.parse.scanTokens <$> readFile s
 
 eval prog = case prog of
   Reject err -> show err
-  Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss) ++ "\n(check-sat)"
+  Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss)
+                         ++ makeQuery funs basetype
+                         ++"\n(check-sat)"
 
+eval_ (LEFT _) = ""
+eval_ (RIGHT _) = ""
 eval_ (BASETYPE _) = ""
 eval_ CommentOut = ""
 eval_ (BIND varName varArgs varType varExpr) = case varExpr of
@@ -92,29 +96,39 @@ header = unlines [ "",
     "(declare-fun leq_lexico (Int Int) Bool)",
     ""]
 
+basetype = PAIRty INT INT
 funs = [ "f1" , "f2" ]
+makeQuery :: [String] -> TY -> String
+makeQuery fs bt = a1 ++ a2 ++ a3
+  where
+    a1 = unlines $ fmap declareBool fs
+    a2 = do
+      f <- fs
+      mainQuery f fs bt
+    a3 = lastQuery fs
 
+-- (declare-const b Bool)
 declareBool f = "(declare-const " ++ bf ++ " Bool)"
   where bf = "b" ++ f
 
+-- (assert (not (b1 b2 ..)))
 lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
   where
     aux xs = concat.prepare $ xs
     prepare xs = fmap (\x->"b"++x++" ") xs
 
-mainQuery f fs =
+-- (assert (forall ((x T)(y T)..)
+--  hogehoge
+-- ))
+mainQuery f fs btype =
   let bf = "b" ++ f in
     unlines $ [ "",
     "(assert (= " ++ bf,
-    "    (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))",
+    "    (forall ((xs (List " ++ showType btype ++ ")) (ys (List " ++ 
+                 showType btype ++ ")) (a " ++ showType btype ++ "))",
     "    (=> (r ys xs) ",
     "    (=> (p (" ++ f ++ " a ys))",
-    "        (or "] ++ fmap (target f) fs ++ [")))))"]
+    "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
         target f g = "\t(and (p (" ++ g ++ " a xs)) (r (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
 
-main = do
-  print "- - - - -"
-  putStrLn $ unlines $ fmap declareBool funs
-  putStrLn $ mainQuery "f1" funs
-  putStrLn $ lastQuery funs

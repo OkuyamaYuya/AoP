@@ -1,6 +1,8 @@
 -- lexicographically largest subsequences
 
 BASETYPE : Int
+LEFT  : [e1]
+RIGHT : [f1,f2]
 
 r : (List Int)->(List Int)->Bool = leq_lexico
 q : (List Int)->(List Int)->Bool = leq_lexico
