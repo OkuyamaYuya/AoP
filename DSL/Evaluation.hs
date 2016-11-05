@@ -9,11 +9,36 @@ import Debug.Trace
 
 evalFile s = eval.parse.scanTokens <$> readFile s
 
+
+basetype = PAIRty INT INT
+funs = [ "f1" , "f2" ]
+
 eval prog = case prog of
   Reject err -> show err
-  Accept (Program ss) -> header ++ (unlines $ fmap eval_ ss)
-                         ++ makeQuery funs basetype
-                         ++"\n(check-sat)"
+  Accept (Program ss) ->
+    case getFunsBtype ss of
+      Reject err -> show err
+      Accept (fs,bt) ->
+        header ++ (unlines $ fmap eval_ ss)
+        ++ makeQuery fs bt ++"\n(check-sat)"
+
+getFunsBtype :: [Sentence] -> Result ([String],TY)
+getFunsBtype ss =
+  let fs = findRight ss
+      bt = findBase ss
+  in
+    case (fs,bt) of
+      (Nothing,_) -> Reject "write 'RIGHT'."
+      (_,Nothing) -> Reject "write 'BASETYPE'."
+      (Just jfs,Just jbt) -> Accept (fmap showExpr jfs,jbt)
+  where
+    -- find leftmost one.
+    findRight [] = Nothing
+    findRight ((RIGHT x):xs) = Just x
+    findRight (_:xs) = findRight xs
+    findBase [] = Nothing
+    findBase ((BASETYPE x):xs) = Just x
+    findBase (_:xs) = findBase xs
 
 eval_ (LEFT _) = ""
 eval_ (RIGHT _) = ""
@@ -96,8 +121,6 @@ header = unlines [ "",
     "(declare-fun leq_lexico (Int Int) Bool)",
     ""]
 
-basetype = PAIRty INT INT
-funs = [ "f1" , "f2" ]
 makeQuery :: [String] -> TY -> String
 makeQuery fs bt = a1 ++ a2 ++ a3
   where
