@@ -1,4 +1,4 @@
-module Evaluation (evalFile,eval) where
+module TransZ3 ( transZ3 ) where
 
 import Base
 import Lex
@@ -7,15 +7,13 @@ import Syntax
 import Data.Map as Map
 import Debug.Trace
 
-evalFile s = eval.parse.scanTokens <$> readFile s
-
-eval prog = case prog of
+transZ3 prog = case prog of
   Reject err -> show err
   Accept (Program ss) ->
     case getFunsBtype ss of
       Reject err -> show err
       Accept (fs,bt) ->
-        header bt ++ (unlines $ fmap eval_ ss)
+        header bt ++ (unlines $ fmap transZ3_ ss)
         ++ makeQuery fs bt ++"\n(check-sat)"
 
 getFunsBtype :: [Sentence] -> Result ([String],TY)
@@ -36,11 +34,11 @@ getFunsBtype ss =
     findBase ((BASETYPE x):xs) = Just x
     findBase (_:xs) = findBase xs
 
-eval_ (LEFT _) = ""
-eval_ (RIGHT _) = ""
-eval_ (BASETYPE _) = ""
-eval_ CommentOut = ""
-eval_ (BIND varName varArgs varType varExpr) = case varExpr of
+transZ3_ (LEFT _) = ""
+transZ3_ (RIGHT _) = ""
+transZ3_ (BASETYPE _) = ""
+transZ3_ CommentOut = ""
+transZ3_ (BIND varName varArgs varType varExpr) = case varExpr of
   VAR _ -> case varType of
             FUN _ _ -> declareFun varName varType varExpr
             _       -> declareConst varName varType varExpr

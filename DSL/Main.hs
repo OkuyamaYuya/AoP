@@ -5,7 +5,7 @@ import Lex
 import Parse
 import Typecheck
 import Syntax
-import Evaluation
+import TransZ3
 import System.Environment (getArgs)
 
 prettyPrint s = case s of
@@ -38,7 +38,7 @@ main = do
             Accept _ -> do
               putStrLn "--type check--\nOK"
               putStrLn "--z3 code--"
-              let resultEval = eval resultParse
-              putStrLn resultEval
-              writeFile "./test.z3" resultEval
+              let resultTransZ3 = transZ3 resultParse
+              putStrLn resultTransZ3
+              writeFile "./test.z3" resultTransZ3
 
