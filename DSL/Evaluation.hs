@@ -9,10 +9,6 @@ import Debug.Trace
 
 evalFile s = eval.parse.scanTokens <$> readFile s
 
-
-basetype = PAIRty INT INT
-funs = [ "f1" , "f2" ]
-
 eval prog = case prog of
   Reject err -> show err
   Accept (Program ss) ->
