@@ -21,6 +21,7 @@ q a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
                 (leq (sumVal a) (sumVal b)) && ((sumWt a) == (sumWt b))
 
 
+
 e1 : (List (Pair Int Int)) = nil
 f1 : (Pair Int Int) -> (List (Pair Int Int)) -> (List (Pair Int Int)) = cons
 f2 : (Pair Int Int) -> (List (Pair Int Int)) -> (List (Pair Int Int)) = outr

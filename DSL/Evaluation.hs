@@ -92,4 +92,29 @@ header = unlines [ "",
     "(declare-fun leq_lexico (Int Int) Bool)",
     ""]
 
+funs = [ "f1" , "f2" ]
 
+declareBool f = "(declare-const " ++ bf ++ " Bool)"
+  where bf = "b" ++ f
+
+lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
+  where
+    aux xs = concat.prepare $ xs
+    prepare xs = fmap (\x->"b"++x++" ") xs
+
+mainQuery f fs =
+  let bf = "b" ++ f in
+    unlines $ [ "",
+    "(assert (= " ++ bf,
+    "    (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))",
+    "    (=> (r ys xs) ",
+    "    (=> (p (" ++ f ++ " a ys))",
+    "        (or "] ++ fmap (target f) fs ++ [")))))"]
+      where
+        target f g = "\t(and (p (" ++ g ++ " a xs)) (r (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
+
+main = do
+  print "- - - - -"
+  putStrLn $ unlines $ fmap declareBool funs
+  putStrLn $ mainQuery "f1" funs
+  putStrLn $ lastQuery funs

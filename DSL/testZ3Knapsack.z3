@@ -54,7 +54,8 @@
         (forall ((xs (List (Pair Int Int))) (ys (List (Pair Int Int))) (a (Pair Int Int)))
         (=> (r ys xs) 
         (=> (p ys)
-            (or (and (p (insert a xs)) (r ys (insert a xs)))
+            (or 
+                (and (p (insert a xs)) (r ys (insert a xs)))
                 (and (p xs) (r ys xs))))))))
 
 (assert (not (and b1 b2)))
