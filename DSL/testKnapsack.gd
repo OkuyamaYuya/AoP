@@ -12,12 +12,12 @@ sumWt x : (List (Pair Int Int))->Int = snd (pairSum x)
 
 w : Int = 10
 
-within x : (List (Pair Int Int))->Bool = leq (sumWt x) w
+p x : (List (Pair Int Int))->Bool = leq (sumWt x) w
 
-knapR a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
+r a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
                                         leq (sumVal a) (sumVal b)
 
-knapQ a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
+q a b : (List (Pair Int Int))->(List (Pair Int Int))->Bool =
                 (leq (sumVal a) (sumVal b)) && ((sumWt a) == (sumWt b))
 
 

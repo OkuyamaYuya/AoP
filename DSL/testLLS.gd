@@ -2,8 +2,8 @@
 
 BASETYPE : Int
 
-llsR : (List Int)->(List Int)->Bool = leq_lexico
-llsQ : (List Int)->(List Int)->Bool = leq_lexico
+r : (List Int)->(List Int)->Bool = leq_lexico
+q : (List Int)->(List Int)->Bool = leq_lexico
 
 e1 : (List Int) = nil
 f1 : Int -> (List Int) -> (List Int) = cons
