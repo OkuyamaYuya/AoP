@@ -9,7 +9,6 @@ data Token = Int Int
            | Plus
            | Minus
            | Times
-           | Div
            | Lparen
            | Rparen
            | Lparen2

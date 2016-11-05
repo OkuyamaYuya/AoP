@@ -61,9 +61,14 @@ instance ShowExpr Expr where
   showExpr (B False) = "false"
   showExpr (VAR a) = a
   showExpr (PAIR a b) = "(mk-pair " ++ showExpr a ++ " " ++ showExpr b ++ ")"
-  showExpr (PLUS a b) = "(+ " ++ showExpr a  ++ showExpr b ++ ")"
+  showExpr (PLUS a b)  = "(+ " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (MINUS a b) = "(- " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (TIMES a b) = "(* " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (AND a b) = "(and " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (OR a b)   = "(or " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (EQU a b)   = "(= " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
   showExpr (APP (APP a b) c) = "(" ++ showExpr a ++ " " ++ showExpr b ++ " " ++ showExpr c ++ ")"
   showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
 
 -- main = do
-  -- print $ showExpr $ (APP (APP (VAR "leq") (VAR "p2")) (VAR "p1"))
+  -- print $ showExpr $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))

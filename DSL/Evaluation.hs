@@ -16,20 +16,13 @@ eval prog = case prog of
 eval_ (BASETYPE _) = ""
 eval_ CommentOut = ""
 eval_ (BIND varName varArgs varType varExpr) = case varExpr of
-  NAT _ -> declareConst varName varType varExpr
-  B _   -> declareConst varName varType varExpr
-  PAIR _ _ -> case varType of
-                FUN _ _ -> defineFun varName varArgs varType varExpr
-                _       -> declareConst varName varType varExpr
   VAR _ -> case varType of
             FUN _ _ -> declareFun varName varType varExpr
             _       -> declareConst varName varType varExpr
-  APP _ _ -> case varType of
-               FUN _ _ -> defineFun varName varArgs varType varExpr
-               _       -> declareConst varName varType varExpr
   FOLDR _ _ -> declareRecFun varName varType varExpr
-  _ -> ""
-
+  _ -> case varType of
+        FUN _ _ -> defineFun varName varArgs varType varExpr
+        _       -> declareConst varName varType varExpr
 
 -- [x,y] -> (a -> b -> c) -> "((x a) (y b)) (c)"
 argTuple :: [String] -> TY -> String
@@ -93,6 +86,10 @@ header = unlines [ "",
     "(define-fun cons ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
     "  (insert x xs))",
     "(define-fun outr ((x (Pair Int Int)) (xs (List (Pair Int Int)))) (List (Pair Int Int))",
-    "  xs)" ]
+    "  xs)",
+    "(declare-fun leq (Int Int) Bool)",
+    "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))",
+    "(declare-fun leq_lexico (Int Int) Bool)",
+    ""]
 
 
