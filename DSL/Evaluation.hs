@@ -119,7 +119,7 @@ header bt = unlines [ "",
     "  xs)",
     "(declare-fun leq (Int Int) Bool)",
     "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))",
-    "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
+    -- "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
     ""]
 
 makeQuery :: [String] -> TY -> String
@@ -141,6 +141,8 @@ lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
     aux xs = concat.prepare $ xs
     prepare xs = fmap (\x->"b"++x++" ") xs
 
+-- Better-Local monotonicity check
+-- q : local criterion
 -- (assert (forall ((x T)(y T)..)
 --  hogehoge
 -- ))
@@ -150,9 +152,9 @@ mainQuery f fs btype =
     "(assert (= " ++ bf,
     "    (forall ((xs (List " ++ showType btype ++ ")) (ys (List " ++ 
                  showType btype ++ ")) (a " ++ showType btype ++ "))",
-    "    (=> (r ys xs) ",
+    "    (=> (q ys xs) ",
     "    (=> (p (" ++ f ++ " a ys))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
-        target f g = "\t(and (p (" ++ g ++ " a xs)) (r (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
+        target f g = "\t(and (p (" ++ g ++ " a xs)) (q (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
 
