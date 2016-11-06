@@ -27,28 +27,26 @@ tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
 tycheck prog = case prog of
   Reject err -> Reject err
-  Accept (Program ss) ->
-    case (lookupBtype ss) of
+  Accept (Program ss) -> case (lookupBtype ss) of
     Nothing -> Reject "You have to write BASETYPE."
     Just basetype ->
       Prelude.foldl aux (Accept $ default_env basetype) ss
         where
           aux (Reject a) _ = Reject a
-          aux (Accept env) s =
-            case s of
-             BIND x as t e ->
-               case (mkEnv as t env) of
-                 Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
-                 Accept envMk ->
-                   let this_type = tycheck_ e envMk
-                       cod x [] = x
-                       cod (FUN x xs) (a:funArgs) = cod xs funArgs
-                   in if cod t as == this_type
-                      then Accept (envAdd x t env)
-                      else Reject (show e++" "++show this_type++
-                                   " doesn't matches "++
-                                   show t++" in "++show s)
-             _ -> Accept env
+          aux (Accept env) s = case s of
+            BIND x as t e ->
+              case (mkEnv as t env) of
+                Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
+                Accept envMk ->
+                  let this_type = tycheck_ e envMk
+                      cod x [] = x
+                      cod (FUN x xs) (a:funArgs) = cod xs funArgs
+                  in if cod t as == this_type
+                     then Accept (envAdd x t env)
+                     else Reject (show e++" "++show this_type++
+                                  " doesn't matches "++
+                                  show t++" in "++show s)
+            _ -> Accept env
 
 lookupBtype [] = Nothing
 lookupBtype ((BASETYPE b):_) = Just b

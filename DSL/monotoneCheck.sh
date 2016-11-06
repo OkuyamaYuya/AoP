@@ -16,7 +16,7 @@ else
   fi
 
   if  echo "$result" | grep "error" >/dev/null 2>&1; then
-    echo "there's error."
+    echo "error exists."
     echo $result
   fi
 
