@@ -15,7 +15,7 @@
         (= true (r a b))
         (= false (r a b)))))
 
-; Best Local
+; Better Local
 ; not forall xs,ys,a . xs `r` ys => (a:xs) `r` (a:ys)
 (assert (not (forall ((xs (List Int)) (ys (List Int)) (a Int))
           (implies (r xs ys) (r (insert a xs) (insert a ys))))))
