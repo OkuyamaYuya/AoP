@@ -15,23 +15,23 @@ import Data.Maybe (maybeToList)
 
 -------------------------------------------------
 
-data M f a = In (f a (M f a))
+data Fix f a = In (f a (Fix f a))
 
 data (f :+: g) a b = Inl (f a b) | Inr (g a b) deriving (Eq,Ord)
 
 -------------------------------------------------
 
-instance (Show a,Show2 f) => Show (M f a) where
+instance (Show a,Show2 f) => Show (Fix f a) where
   show = show2'
     where
       show2' (In x) = show2 x
 
-instance (Eq a,Eq2 f) => Eq (M f a) where
+instance (Eq a,Eq2 f) => Eq (Fix f a) where
   (==) = eq2'
     where
       eq2' (In x) (In y) = x `eq2` y
 
-instance (Ord a,Ord2 f) => Ord (M f a) where
+instance (Ord a,Ord2 f) => Ord (Fix f a) where
   compare = compare2'
     where
       compare2' (In x) (In y) = compare2 x y
@@ -47,14 +47,14 @@ instance (Functor (f a),Functor (g a)) => Functor ((f :+: g) a) where
 -------------------------------------------------
 
 class Show2 f where
-  show2 :: (Show a,Show2 g) => (f a (M g a)) -> String
+  show2 :: (Show a,Show2 g) => (f a (Fix g a)) -> String
 
 instance (Show2 f,Show2 g) => Show2 (f :+: g) where
   show2 (Inl x) = show2 x
   show2 (Inr x) = show2 x
 
 class Eq2 f where
-  eq2 :: (Eq a,Eq2 g) => (f a (M g a)) -> (f a (M g a)) -> Bool
+  eq2 :: (Eq a,Eq2 g) => (f a (Fix g a)) -> (f a (Fix g a)) -> Bool
 
 instance (Eq2 f,Eq2 g) => Eq2 (f :+: g) where
   (Inl x) `eq2` (Inl y) = x `eq2` y
@@ -63,7 +63,7 @@ instance (Eq2 f,Eq2 g) => Eq2 (f :+: g) where
   (Inr x) `eq2` (Inl y) = False
 
 class Eq2 f => Ord2 f where
-  compare2 :: (Ord a,Ord2 g) => (f a (M g a)) -> (f a (M g a)) -> Ordering
+  compare2 :: (Ord a,Ord2 g) => (f a (Fix g a)) -> (f a (Fix g a)) -> Ordering
 
 instance (Ord2 f,Ord2 g) => Ord2 (f :+: g) where
   compare2 (Inl x) (Inl y) = compare2 x y
@@ -110,11 +110,11 @@ instance Ord2 Cross where
           compare2' (In a) (In b) = compare2 a b
 
 type L = One :+: Cross
-type List a = M L a
+type List a = Fix L a
 
 -------------------------------------------------
 
-foldF :: Functor (f a) => (f a b -> b) -> (M f a) -> b
+foldF :: Functor (f a) => (f a b -> b) -> (Fix f a) -> b
 foldF f (In x) = f ( fmap (foldF f) x )
 
 toList :: [a] -> List a
