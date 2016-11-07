@@ -62,3 +62,13 @@
 
 (check-sat)
 
+; Is connected ?
+(assert (= false
+    (forall ((x (List (Pair Int Int))) (y (List (Pair Int Int))))
+          (or
+            (r x y)
+            (r y x)
+    ))
+))
+
+(check-sat)
