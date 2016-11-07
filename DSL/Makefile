@@ -1,13 +1,17 @@
 all: Main
 
-Lex.hs : Lex.x
-	alex Lex.x
+LEX = Lex.x
+PARSE = Parse.y
+MAIN = Main.hs
 
-Parse.hs : Parse.y
-	happy Parse.y
+Lex.hs : $(LEX)
+	alex $(LEX)
 
-Main : Lex.hs Parse.hs Main.hs
-	ghc --make Main.hs
+Parse.hs : $(PARSE)
+	happy $(PARSE)
+
+Main : Lex.hs Parse.hs $(MAIN)
+	ghc --make $(MAIN)
 
 clean:
 	rm -f *.o *.hi Parse.hs Lex.hs

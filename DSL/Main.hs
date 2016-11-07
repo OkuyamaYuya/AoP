@@ -41,7 +41,7 @@ main = do
               putStrLn "--z3 code--"
               let resultTransZ3 = transZ3 resultParse
               putStrLn resultTransZ3
-              writeFile "./test.z3" resultTransZ3
+              writeFile "./temp/test.z3" resultTransZ3
               -- execute monotoneCheck.sh
               r <- readProcess "./monotoneCheck.sh" [] ""
               putStrLn "--check monotonicity--"

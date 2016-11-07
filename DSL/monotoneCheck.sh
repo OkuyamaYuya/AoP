@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILE="./test.z3"
+FILE="./temp/test.z3"
 
 if [ ! -f ${FILE} ]; then
 
