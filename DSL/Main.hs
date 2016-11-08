@@ -6,6 +6,7 @@ import Parse
 import Typecheck
 import Syntax
 import TransZ3
+import TransHs
 import System.Process (system)
 import System.Environment (getArgs)
 import System.Exit
@@ -21,6 +22,9 @@ prettyPrint s = case s of
     putStrLn $ "type\n\t" ++ show t
     putStrLn $ "expr\n\t" ++ show e
     putStrLn "\n"
+
+z3file = "./temp/test.z3"
+hsfile = "./temp/thin_or_greedy.hs"
 
 main::IO()
 main = do
@@ -42,10 +46,13 @@ main = do
               putStrLn "--z3 code--"
               let resultTransZ3 = transZ3 resultParse
               putStrLn resultTransZ3
-              writeFile "./temp/test.z3" resultTransZ3
+              writeFile z3file resultTransZ3
               -- execute monotoneCheck.sh
               putStrLn "--check monotonicity--"
               monotoneOrNot <- system "./monotoneCheck.sh"
-              if monotoneOrNot == ExitSuccess
-                    then putStrLn ""
-                    else putStrLn ""
+              case monotoneOrNot of
+                ExitSuccess -> do
+                  let resultTransHs = transHs resultParse
+                  putStrLn resultTransHs
+                  writeFile hsfile resultTransHs
+                _ -> putStrLn "Failure"

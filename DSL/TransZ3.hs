@@ -60,7 +60,7 @@ transZ3_ (BIND varName varArgs varType varExpr) = case varExpr of
 -- [x,y] -> (a -> b -> c) -> "((x a) (y b)) (c)"
 argTuple :: [String] -> TY -> String
 argTuple as ts = concat $ zipWith aux as (types $ ts)
-  where aux x t = "(" ++ x ++ t ++ ")"
+  where aux x t = "(" ++ x ++ " " ++ t ++ ")"
 -- FUN a (FUN b c) -> [a,b]
 types :: TY -> [String]
 types (FUN a b) = showType a : types b

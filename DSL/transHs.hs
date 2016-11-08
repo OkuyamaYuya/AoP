@@ -11,14 +11,14 @@ import Debug.Trace
 transHs :: Result Program -> String
 transHs prog = case prog of
   Reject err -> ""
-  Accept (Program ss) -> unlines $ fmap transHs_ ss
+  Accept (Program ss) -> header ++ unlines (fmap transHs_ ss)
 
 transHs_ (LEFT _) = ""
 transHs_ (RIGHT _) = ""
 transHs_ (BASETYPE _) = ""
 transHs_ CommentOut = ""
 transHs_ (BIND varName varArgs varType varExpr) = case varExpr of
-  FOLDR _ _ -> ""
+  FOLDR _ _ -> defineCata varName varArgs varType varExpr
   _
     | Prelude.null varArgs -> defineConst varName varArgs varType varExpr
     | otherwise -> defineFun varName varArgs varType varExpr
@@ -37,8 +37,23 @@ defineFun name args typ expr = aboutType ++ "\n" ++ aboutExpr
     aboutType = name ++ " :: " ++ showTypeHs typ
     aboutExpr  = name ++ " " ++ unwords args ++ " = " ++ showExprHs expr
 
-header bt lx = unlines $ [ "" ]
+defineCata name args typ (FOLDR f_e e_e) = aboutType ++ "\n" ++ aboutExpr
+                                       ++ "\n  where\n    " ++ aboutWhere
+  where
+    f = showExprHs f_e
+    e = showExprHs e_e
+    aboutType = name ++ " :: " ++ showTypeHs typ
+    aboutExpr = "foldF s"
+    aboutWhere = "s (Inl One) = " ++ e ++ "\n    " ++ 
+                 "s (Inr (Cross a b)) = " ++ f ++ " a b"
 
-main = do
-  putStrLn $ transHs_ (BIND "f" ["x","y"] (FUN INT INT) (PLUS (VAR "y") (VAR "x")))
-  putStrLn $ transHs_ (BIND "z" [] BOOL (AND (B False) (OR (B True) (AND (B True) (VAR "b")))))
+header = unlines [
+        "{-# LANGUAGE ExistentialQuantification #-}",
+        "{-# LANGUAGE ConstrainedClassMethods #-}",
+        "{-# LANGUAGE FlexibleContexts #-}",
+        "{-# LANGUAGE TypeOperators #-}",
+        "import ListCata",
+        "import Data.List (union)" ]
+
+-- main = do
+--   putStrLn $ transHs_ (BIND "sum" ["xs"] (FUN (LISTty INT) INT) (FOLDR (VAR "f") (NAT 0)))
