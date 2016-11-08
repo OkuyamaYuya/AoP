@@ -18,12 +18,20 @@ transHs_ (RIGHT _) = ""
 transHs_ (BASETYPE _) = ""
 transHs_ CommentOut = ""
 transHs_ (BIND varName varArgs varType varExpr) = case varExpr of
-  VAR _ -> case varType of
-            FUN _ _ -> declareFun varName varType varExpr
-            _       -> declareConst varName varType varExpr
-  FOLDR _ _ -> declareRecFun varName varType varExpr
-  _ -> case varType of
-        FUN _ _ -> defineFun varName varArgs varType varExpr
-        _       -> declareConst varName varType varExpr
+  _ -> define varName varArgs varType varExpr
+--  LIST [_]
+--  PAIR _ _
+--  GET _ _
+--  IF    {cond::_,  tru::_, fal::_} 
+--  FOLDR {f::_, e::_}
+
+define name args typ expr = name ++ " = " ++ showExprHs expr
 
 header bt lx = unlines $ [ "" ]
+
+main = do
+  print $ transHs_ (BIND "b" [] BOOL (B True))
+  print $ transHs_ (BIND "x" [] INT (NAT 111))
+  print $ transHs_ (BIND "w" [] INT (APP (VAR "f") (VAR "x")))
+  print $ transHs_ (BIND "y" [] INT (PLUS (NAT 1) (NAT 2)))
+  print $ transHs_ (BIND "z" [] BOOL (AND (B False) (OR (B True) (AND (B True) (VAR "b")))))

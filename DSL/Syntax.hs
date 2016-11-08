@@ -82,23 +82,28 @@ instance ShowExpr Expr where
   showExpr (EQU a b) = "(= " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
   showExpr (APP (APP a b) c) = "(" ++ showExpr a ++ " " ++ showExpr b ++ " " ++ showExpr c ++ ")"
   showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
+  showExpr (IF c t f) = "(ite " ++ showExpr c ++ showExpr t ++ showExpr f ++ ")"
 
-class ShowHs f where
-  showHs :: f -> String
+class ShowExprHs f where
+  showExprHs :: f -> String
 
-instance ShowHs Expr where
-  showHs (NAT a) = show a
-  showHs (B a) = show a
-  showHs (VAR a) = a
-  showHs (PAIR a b) = "(" ++ showHs a ++ " , " ++ showHs b ++ ")"
-  showHs (PLUS a b)  = "(" ++ showHs a ++ " + "  ++ showHs b ++ ")"
-  showHs (MINUS a b) = "(" ++ showHs a ++ " - "  ++ showHs b ++ ")"
-  showHs (TIMES a b) = "(" ++ showHs a ++ " * "  ++ showHs b ++ ")"
-  showHs (AND a b) = "(" ++ showHs a ++ " && "  ++ showHs b ++ ")"
-  showHs (OR a b)  = "(" ++ showHs a ++ " || "  ++ showHs b ++ ")"
-  showHs (EQU a b) = "(" ++ showHs a ++ " == "  ++ showHs b ++ ")"
-  showHs (APP a b) = "(" ++ showHs a ++ " " ++ showHs b ++ ")"
+instance ShowExprHs Expr where
+  showExprHs (NAT a) = show a
+  showExprHs (B a) = show a
+  showExprHs (VAR a) = a
+  showExprHs (PAIR a b) = "(" ++ showExprHs a ++ " , " ++ showExprHs b ++ ")"
+  showExprHs (PLUS a b)  = "(" ++ showExprHs a ++ " + "  ++ showExprHs b ++ ")"
+  showExprHs (MINUS a b) = "(" ++ showExprHs a ++ " - "  ++ showExprHs b ++ ")"
+  showExprHs (TIMES a b) = "(" ++ showExprHs a ++ " * "  ++ showExprHs b ++ ")"
+  showExprHs (AND a b) = "(" ++ showExprHs a ++ " && "  ++ showExprHs b ++ ")"
+  showExprHs (OR a b)  = "(" ++ showExprHs a ++ " || "  ++ showExprHs b ++ ")"
+  showExprHs (EQU a b) = "(" ++ showExprHs a ++ " == "  ++ showExprHs b ++ ")"
+  showExprHs (APP a b) = "(" ++ showExprHs a ++ " " ++ showExprHs b ++ ")"
+  showExprHs (IF c t f) = "if " ++ showExprHs c ++ " then " ++ showExprHs t ++ " else " ++ showExprHs f
+  showExprHs (LIST as) = "[" ++ mapLike showExprHs as ++ "]"
+    where mapLike f [] = ""
+          mapLike f (x:xs) = f x ++ "," ++ mapLike f xs
 
-main = do
+-- main = do
   -- putStrLn $ showTypeHs $ LISTty INT
-  -- putStrLn $ showHs $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))
+  -- putStrLn $ showExprHs $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))
