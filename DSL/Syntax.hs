@@ -12,7 +12,7 @@ class ShowType t where
   showType :: t -> String
 
 instance ShowType TY where
-  showType (BOTTOM s) = "BOTTOM "++s
+  showType (BOTTOM s) = "BOTTOM "++ s
   showType INT = "Int"
   showType BOOL = "Bool"
   showType (LISTty t) = "(List "++showType t++")"
@@ -25,6 +25,17 @@ instance ShowType TY where
       args others    = [others]
       toTypeStyle (a:[]) = ")" ++ showType a
       toTypeStyle (a:as) = showType a ++ toTypeStyle as
+
+class ShowTypeHs t where
+  showTypeHs :: t -> String
+
+instance ShowTypeHs TY where
+  showTypeHs (BOTTOM s) = "BOTTOM "++s
+  showTypeHs INT = "Int"
+  showTypeHs BOOL = "Bool"
+  showTypeHs (LISTty t) = "List "++showTypeHs t
+  showTypeHs (PAIRty t1 t2) = "("++showTypeHs t1++","++showTypeHs t2++")"
+  showTypeHs (FUN t1 t2) = "(" ++ showTypeHs t1 ++ ") -> " ++ showTypeHs t2
 
 
 data Program = Program [Sentence] deriving (Show,Read)
@@ -72,5 +83,22 @@ instance ShowExpr Expr where
   showExpr (APP (APP a b) c) = "(" ++ showExpr a ++ " " ++ showExpr b ++ " " ++ showExpr c ++ ")"
   showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
 
--- main = do
---   putStrLn $ showExpr $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))
+class ShowHs f where
+  showHs :: f -> String
+
+instance ShowHs Expr where
+  showHs (NAT a) = show a
+  showHs (B a) = show a
+  showHs (VAR a) = a
+  showHs (PAIR a b) = "(" ++ showHs a ++ " , " ++ showHs b ++ ")"
+  showHs (PLUS a b)  = "(" ++ showHs a ++ " + "  ++ showHs b ++ ")"
+  showHs (MINUS a b) = "(" ++ showHs a ++ " - "  ++ showHs b ++ ")"
+  showHs (TIMES a b) = "(" ++ showHs a ++ " * "  ++ showHs b ++ ")"
+  showHs (AND a b) = "(" ++ showHs a ++ " && "  ++ showHs b ++ ")"
+  showHs (OR a b)  = "(" ++ showHs a ++ " || "  ++ showHs b ++ ")"
+  showHs (EQU a b) = "(" ++ showHs a ++ " == "  ++ showHs b ++ ")"
+  showHs (APP a b) = "(" ++ showHs a ++ " " ++ showHs b ++ ")"
+
+main = do
+  -- putStrLn $ showTypeHs $ LISTty INT
+  -- putStrLn $ showHs $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))

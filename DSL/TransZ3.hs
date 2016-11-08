@@ -8,6 +8,7 @@ import Data.Map as Map
 import Data.List (isInfixOf)
 import Debug.Trace
 
+transZ3 :: Result Program -> String
 transZ3 prog = case prog of
   Reject err -> show err
   Accept (Program ss) ->

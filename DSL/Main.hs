@@ -47,5 +47,5 @@ main = do
               putStrLn "--check monotonicity--"
               monotoneOrNot <- system "./monotoneCheck.sh"
               if monotoneOrNot == ExitSuccess
-                    then putStrLn "monotonic"
-                    else putStrLn "not monotonic"
+                    then putStrLn ""
+                    else putStrLn ""
