@@ -11,27 +11,34 @@ import Debug.Trace
 transHs :: Result Program -> String
 transHs prog = case prog of
   Reject err -> ""
-  Accept (Program ss) -> ""
+  Accept (Program ss) -> unlines $ fmap transHs_ ss
 
 transHs_ (LEFT _) = ""
 transHs_ (RIGHT _) = ""
 transHs_ (BASETYPE _) = ""
 transHs_ CommentOut = ""
 transHs_ (BIND varName varArgs varType varExpr) = case varExpr of
-  _ -> define varName varArgs varType varExpr
---  LIST [_]
---  PAIR _ _
---  GET _ _
---  IF    {cond::_,  tru::_, fal::_} 
---  FOLDR {f::_, e::_}
+  FOLDR _ _ -> ""
+  _
+    | Prelude.null varArgs -> defineConst varName varArgs varType varExpr
+    | otherwise -> defineFun varName varArgs varType varExpr
 
-define name args typ expr = name ++ " = " ++ showExprHs expr
+-- x :: type
+-- x = expr
+defineConst name args typ expr = aboutType ++ "\n" ++ aboutExpr
+  where
+    aboutType = name ++ " :: " ++ showTypeHs typ
+    aboutExpr  = name ++ " = " ++ showExprHs expr
+
+-- f :: type -> type
+-- f x = expr
+defineFun name args typ expr = aboutType ++ "\n" ++ aboutExpr
+  where
+    aboutType = name ++ " :: " ++ showTypeHs typ
+    aboutExpr  = name ++ " " ++ unwords args ++ " = " ++ showExprHs expr
 
 header bt lx = unlines $ [ "" ]
 
 main = do
-  print $ transHs_ (BIND "b" [] BOOL (B True))
-  print $ transHs_ (BIND "x" [] INT (NAT 111))
-  print $ transHs_ (BIND "w" [] INT (APP (VAR "f") (VAR "x")))
-  print $ transHs_ (BIND "y" [] INT (PLUS (NAT 1) (NAT 2)))
-  print $ transHs_ (BIND "z" [] BOOL (AND (B False) (OR (B True) (AND (B True) (VAR "b")))))
+  putStrLn $ transHs_ (BIND "f" ["x","y"] (FUN INT INT) (PLUS (VAR "y") (VAR "x")))
+  putStrLn $ transHs_ (BIND "z" [] BOOL (AND (B False) (OR (B True) (AND (B True) (VAR "b")))))

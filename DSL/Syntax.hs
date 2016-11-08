@@ -101,7 +101,7 @@ instance ShowExprHs Expr where
   showExprHs (APP a b) = "(" ++ showExprHs a ++ " " ++ showExprHs b ++ ")"
   showExprHs (IF c t f) = "if " ++ showExprHs c ++ " then " ++ showExprHs t ++ " else " ++ showExprHs f
   showExprHs (LIST as) = "[" ++ mapLike showExprHs as ++ "]"
-    where mapLike f [] = ""
+    where mapLike f [x] = f x
           mapLike f (x:xs) = f x ++ "," ++ mapLike f xs
 
 -- main = do
