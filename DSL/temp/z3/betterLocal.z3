@@ -21,3 +21,6 @@
           (implies (r xs ys) (r (insert a xs) (insert a ys))))))
 (check-sat)
 
+
+
+(check-sat)

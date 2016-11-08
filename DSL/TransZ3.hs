@@ -5,26 +5,30 @@ import Lex
 import Parse
 import Syntax
 import Data.Map as Map
+import Data.List (isInfixOf)
 import Debug.Trace
 
 transZ3 prog = case prog of
   Reject err -> show err
   Accept (Program ss) ->
-    case getFunsBtype ss of
+    case getInfo ss of
       Reject err -> show err
-      Accept (fs,bt) ->
-        header bt ++ (unlines $ fmap transZ3_ ss)
+      Accept (fs,bt,lx) ->
+        header bt lx ++ (unlines $ fmap transZ3_ ss)
         ++ makeQuery fs bt ++"\n(check-sat)"
 
-getFunsBtype :: [Sentence] -> Result ([String],TY)
-getFunsBtype ss =
+type LexicoUsed = Bool
+
+getInfo :: [Sentence] -> Result ([String],TY,LexicoUsed)
+getInfo ss =
   let fs = findRight ss
       bt = findBase ss
+      lx = findLexico ss
   in
-    case (fs,bt) of
-      (Nothing,_) -> Reject "write 'RIGHT'."
-      (_,Nothing) -> Reject "write 'BASETYPE'."
-      (Just jfs,Just jbt) -> Accept (fmap showExpr jfs,jbt)
+    case (fs,bt,lx) of
+      (Nothing,_,_) -> Reject "write 'RIGHT'."
+      (_,Nothing,_) -> Reject "write 'BASETYPE'."
+      (Just jfs,Just jbt,_) -> Accept (fmap showExpr jfs,jbt,lx)
   where
     -- find leftmost one.
     findRight [] = Nothing
@@ -33,6 +37,11 @@ getFunsBtype ss =
     findBase [] = Nothing
     findBase ((BASETYPE x):xs) = Just x
     findBase (_:xs) = findBase xs
+    findLexico [] = False
+    findLexico ((BIND _ _ _ e):xs)
+      | isInfixOf "leq_lexico" (show e) = True
+      | otherwise = findLexico xs
+    findLexico (_:xs) = findLexico xs
 
 transZ3_ (LEFT _) = ""
 transZ3_ (RIGHT _) = ""
@@ -105,16 +114,25 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
 
 -- Types of cons,outr,nil depend on a problem user defines.
-header bt = unlines [ "",
+header :: TY -> LexicoUsed -> String
+header bt lx = unlines $ [ "",
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
     "(define-fun cons ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
     "  (insert x xs))",
     "(define-fun outr ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
     "  xs)",
     "(declare-fun leq (Int Int) Bool)",
-    "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))",
-    -- "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
-    ""]
+    "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))" ] ++
+      if lx then ["",
+    "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
+    "(assert (forall ((xs (List Int)) (ys (List Int)))",
+    "  (= (leq_lexico xs ys)",
+    "  (or",
+    "    (= xs nil)",
+    "    (< (head xs) (head ys))",
+    "    (and (= (head xs) (head ys))",
+    "         (leq_lexico (tail xs) (tail ys)))))))" ] else [""]
+
 
 makeQuery :: [String] -> TY -> String
 makeQuery fs bt = a1 ++ a2 ++ a3
