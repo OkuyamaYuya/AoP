@@ -6,8 +6,9 @@ import Parse
 import Typecheck
 import Syntax
 import TransZ3
-import System.Process (readProcess)
+import System.Process (system)
 import System.Environment (getArgs)
+import System.Exit
 
 prettyPrint s = case s of
   CommentOut -> return ()
@@ -43,7 +44,8 @@ main = do
               putStrLn resultTransZ3
               writeFile "./temp/test.z3" resultTransZ3
               -- execute monotoneCheck.sh
-              r <- readProcess "./monotoneCheck.sh" [] ""
               putStrLn "--check monotonicity--"
-              if r == "ok\n" then putStrLn "monotonic"
-                             else putStrLn "not monotonic"
+              monotoneOrNot <- system "./monotoneCheck.sh"
+              if monotoneOrNot == ExitSuccess
+                    then putStrLn "monotonic"
+                    else putStrLn "not monotonic"
