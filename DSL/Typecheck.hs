@@ -42,10 +42,10 @@ tycheck prog = case prog of
                       cod x [] = x
                       cod (FUN x xs) (a:funArgs) = cod xs funArgs
                   in if cod t as == this_type
-                     then Accept (envAdd x t env)
-                     else Reject (show e++" "++show this_type++
-                                  " doesn't matches "++
-                                  show t++" in "++show s)
+                        then Accept (envAdd x t env)
+                        else Reject (show e++" "++show this_type++
+                                     " doesn't matches "++
+                                     show t++" in "++show s)
             _ -> Accept env
 
 lookupBtype [] = Nothing
@@ -62,19 +62,21 @@ tycheck_ e env = case e of
                     case rest of
                       [] -> LISTty t1
                       _  -> if LISTty t1 == tycheck_ (LIST rest) env
-                            then LISTty t1 
-                            else BOTTOM "List type error"
+                               then LISTty t1 
+                               else BOTTOM "List type error"
   GET e1 e2   -> let t1 = tycheck_ e1 env in
                  if (tycheck_ e2 env) /= INT 
-                 then BOTTOM "type error : list[i], i must be Int type."
-                 else 
-                    case t1 of
-                      LISTty a -> a
-                      _ -> BOTTOM "type error : x[i] , x must be LIST."
-  IF e1 e2 e3 -> let t1 = tycheck_ e1 env in
-                 let t2 = tycheck_ e2 env in
-                 let t3 = tycheck_ e3 env in
-                 if t1==BOOL && t2==t3 then t2 else BOTTOM "type error in if statement"
+                    then BOTTOM "type error : list[i], i must be Int type."
+                    else 
+                      case t1 of
+                        LISTty a -> a
+                        _ -> BOTTOM "type error : x[i] , x must be LIST."
+  IF e1 e2 e3 -> let t1 = tycheck_ e1 env
+                     t2 = tycheck_ e2 env
+                     t3 = tycheck_ e3 env in
+                 if t1==BOOL && t2==t3 
+                    then t2 
+                    else BOTTOM "type error in if statement"
   FOLDR f e ->  case (tycheck_ f env) of
                   FUN a (FUN b c) -- f :: a -> b -> b , e :: b
                     | b == (tycheck_ e env) && b == c -> FUN (LISTty a) b
@@ -83,31 +85,32 @@ tycheck_ e env = case e of
   APP e1 e2  -> let t = tycheck_ e1 env in
                   case t of
                     FUN t1 t2 -> let t3 = tycheck_ e2 env in
-                                  if t1 == t3 then t2 
-                                  else BOTTOM "apply e1 e2 : types not match"
+                                  if t1 == t3
+                                     then t2 
+                                     else BOTTOM "apply e1 e2 : types not match"
                     _ -> BOTTOM "apply e1 e2 : types not match"
   PLUS  e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
-                  then INT 
-                  else BOTTOM "(+)::INT->INT->INT"
+                    then INT 
+                    else BOTTOM "(+)::INT->INT->INT"
   MINUS e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
-                  then INT 
-                  else BOTTOM "(-)::INT->INT->INT"
+                    then INT 
+                    else BOTTOM "(-)::INT->INT->INT"
   TIMES e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
-                  then INT 
-                  else BOTTOM "(*)::INT->INT->INT"
-  EQU e1 e2  ->   let t1 = tycheck_ e1 env in
-                  let t2 = tycheck_ e2 env in
+                    then INT 
+                    else BOTTOM "(*)::INT->INT->INT"
+  EQU e1 e2  ->   let t1 = tycheck_ e1 env
+                      t2 = tycheck_ e2 env in
                   if t1 == t2
-                  then BOOL
-                  else BOTTOM "(==)::a->a->BOOL"
+                     then BOOL
+                     else BOTTOM "(==)::a->a->BOOL"
   AND e1 e2  -> let t1 = tycheck_ e1 env in
                   if t1 == (tycheck_ e2 env) && t1 == BOOL 
-                    then BOOL 
-                    else BOTTOM "(&&)::BOOL->BOOL->BOOL"
+                     then BOOL 
+                     else BOTTOM "(&&)::BOOL->BOOL->BOOL"
   OR  e1 e2  -> let t1 = tycheck_ e1 env in
                   if t1 == (tycheck_ e2 env) && t1 == BOOL 
-                    then BOOL 
-                    else BOTTOM "(||)::BOOL->BOOL->BOOL"
+                     then BOOL 
+                     else BOTTOM "(||)::BOOL->BOOL->BOOL"
   _ -> BOTTOM "error"
 
 -- f x y : a -> b -> c = x + y
