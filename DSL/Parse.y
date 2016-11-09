@@ -70,6 +70,7 @@ Sentence :
   | BASETYPE ':' Type           { S.BASETYPE $3 }
   | LEFT  ':' '[' Sequence ']'  { S.LEFT $4 }
   | RIGHT ':' '[' Sequence ']'  { S.RIGHT $4 }
+  | INPUT ':' '[' Sequence ']'  { S.INPUT $4 }
 
 Args :
     var { [$1] }

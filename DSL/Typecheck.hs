@@ -37,8 +37,8 @@ tycheck prog = case prog of
             BIND x as t e ->
               case (mkEnv as t env) of
                 Reject err -> Reject $ "err in " ++ x ++ " :\n" ++ err
-                Accept envMk ->
-                  let this_type = tycheck_ e envMk
+                Accept envMade ->
+                  let this_type = tycheck_ e envMade
                       cod x [] = x
                       cod (FUN x xs) (a:funArgs) = cod xs funArgs
                   in if cod t as == this_type
@@ -46,6 +46,10 @@ tycheck prog = case prog of
                         else Reject (show e++" "++show this_type++
                                      " doesn't matches "++
                                      show t++" in "++show s)
+            INPUT input_data ->
+              if LISTty basetype == tycheck_ (LIST input_data) (default_env basetype)
+                 then Accept env
+                 else Reject $ "type error in INPUT."
             _ -> Accept env
 
 lookupBtype [] = Nothing

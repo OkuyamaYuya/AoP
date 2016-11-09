@@ -65,6 +65,7 @@ getInfo ss =
 transZ3_ (LEFT _) = ""
 transZ3_ (RIGHT _) = ""
 transZ3_ (BASETYPE _) = ""
+transZ3_ (INPUT _) = ""
 transZ3_ CommentOut = ""
 transZ3_ (BIND varName varArgs varType varExpr) = case varExpr of
   VAR _ -> case varType of
