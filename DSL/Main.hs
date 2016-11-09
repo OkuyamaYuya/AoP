@@ -24,7 +24,18 @@ prettyPrint s = case s of
     putStrLn "\n"
   CommentOut -> return ()
 
-hsfile = "./listcata/thinSolver.hs"
+hsfile = "./listcata/Solver.hs"
+runScript = "./runSolver.sh"
+monotoneCheck o = system ("./monotoneCheck.sh " ++ o)
+
+processHaskell parsed mode = do
+  resultTransHs <- transHs parsed mode
+  putStrLn "-- Haskell code --"
+  putStrLn resultTransHs
+  writeFile hsfile resultTransHs
+  putStrLn "-- run Haskell --"
+  resultRun <- system runScript
+  return ()
 
 main::IO()
 main = do
@@ -44,17 +55,13 @@ main = do
             putStrLn "-- z3 code --"
             resultTransZ3 <- transZ3 resultParse
             putStrLn resultTransZ3
-            putStrLn "-- check monotonicity --"
-            monotoneOrNot <- system ("./monotoneCheck.sh " ++ z3Monotone)
-            case monotoneOrNot of
-              ExitSuccess -> do
-                resultTransHs <- transHs resultParse
-                putStrLn "-- Haskell code --"
-                putStrLn resultTransHs
-                writeFile hsfile resultTransHs
-                putStrLn "-- run Haskell --"
-                resultRun <- system "./runThinSolver.sh"
-                return ()
-              _ -> putStrLn "Failure"
-
-
+            putStrLn "-- check monotonicity - global criterion --"
+            monotonicOnR <- monotoneCheck z3MonotoneR
+            case monotonicOnR of
+              ExitSuccess -> processHaskell resultParse "Greedy"
+              _ -> do
+                putStrLn "-- check monotonicity - local criterion --"
+                monotonicOnQ <- monotoneCheck z3MonotoneQ
+                case monotonicOnQ of
+                  ExitSuccess -> processHaskell resultParse "Thinning"
+                  _ -> putStrLn "can't solve by Thinning or Greedy."

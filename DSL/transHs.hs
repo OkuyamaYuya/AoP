@@ -10,14 +10,16 @@ import Data.Map as Map
 import System.Directory
 import Debug.Trace
 
-transHs :: Result Program -> IO String
-transHs prog = case prog of
+type MODE = String
+
+transHs :: Result Program -> MODE -> IO String
+transHs prog mode = case prog of
   Reject err -> return ""
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return ""
       Accept (_,_,_,lx,lq) ->
-        return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer
+        return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer mode
 
 showFuns :: [Expr] -> String
 showFuns [f] = "Just . " ++ showExprHs f
@@ -69,11 +71,11 @@ header lx lq =
         ++ if lx then ["leq_lexico = (<=)"] else []
         ++ if lq then ["leq = (<=)"] else []
 
-footer = aboutSolver ++ "\n" ++ aboutMain
+footer mode = aboutSolver ++ "\n" ++ aboutMain
   where
     aboutSolver = "thin_or_greedy = solverMain (lfuns,rfuns) p r q"
     aboutMain = "main =" ++
-                "  print.fromList.thin_or_greedy Thinning $ toList input_data"
+                "  print.fromList.thin_or_greedy " ++ mode ++ " $ toList input_data"
 
 -- main = do
 --   putStrLn $ transHs_ (BIND "sum" ["xs"] (FUN (LISTty INT) INT) (FOLDR (VAR "f") (NAT 0)))

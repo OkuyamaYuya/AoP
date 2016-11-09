@@ -1,7 +1,8 @@
 module TransZ3 ( transZ3,
                  getInfo,
-                 z3Monotone,
-                 z3Connected
+                 z3MonotoneR,
+                 z3MonotoneQ
+                 -- z3Connected
                ) where
 
 import Base
@@ -12,8 +13,9 @@ import Data.Map as Map
 import Data.List (isInfixOf)
 import Debug.Trace
 
-z3Monotone = "./temp/testMonotone.z3"
-z3Connected = "./temp/testConnected.z3"
+z3MonotoneR = "./temp/testMonotoneR.z3"
+z3MonotoneQ = "./temp/testMonotoneQ.z3"
+-- z3Connected = "./temp/testConnected.z3"
 
 transZ3 :: Result Program -> IO String
 transZ3 prog = case prog of
@@ -23,8 +25,9 @@ transZ3 prog = case prog of
       Reject err -> return err
       Accept (_,rr,bb,lx,lq) -> do
         let template = header bb lx ++ (unlines $ fmap transZ3_ ss)
-        writeFile z3Monotone (template ++ makeQuery rr bb)
-        writeFile z3Connected (template ++ makeQuery2 bb)
+        writeFile z3MonotoneR (template ++ makeQuery rr bb "r")
+        writeFile z3MonotoneQ (template ++ makeQuery rr bb "q")
+        -- writeFile z3Connected (template ++ makeQuery2 bb)
         return template
 
 type Used = Bool
@@ -160,8 +163,8 @@ header bt lx = unlines $ [
     "         (leq_lexico (tail xs) (tail ys)))))))" ] else [""]
 
 
-makeQuery :: [String] -> TY -> String
-makeQuery fs bt = "(push)\n" ++ comment ++ 
+makeQuery :: [String] -> TY -> String -> String
+makeQuery fs bt order = "(push)\n" ++ comment ++ 
                   a1 ++ a2 ++ a3 ++ 
                   "\n(check-sat)\n(pop)"
   where
@@ -169,7 +172,7 @@ makeQuery fs bt = "(push)\n" ++ comment ++
     a1 = unlines $ fmap declareBool fs
     a2 = do
       f <- fs
-      mainQuery f fs bt
+      mainQuery f fs bt order
     a3 = lastQuery fs
 
 -- (declare-const b Bool)
@@ -187,19 +190,20 @@ lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
 -- (assert (forall ((x T)(y T)..)
 --  hogehoge
 -- ))
-mainQuery f fs btype =
+mainQuery f fs btype order =
   let bf = "b" ++ f in
     unlines $ [
     "(assert (= " ++ bf,
     "    (forall ((xs (List " ++ bb ++ ")) (ys (List " ++ 
                   bb ++ ")) (a " ++ bb ++ "))",
-    "    (=> (q ys xs) ",
+    "    (=> (" ++ order ++ " ys xs) ",
     "    (=> (p (" ++ f ++ " a ys))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
         bb = showType btype
-        target f g = "\t(and (p (" ++ g ++ " a xs)) (q (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
+        target f g = "\t(and (p (" ++ g ++ " a xs)) (" ++ order ++ " (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
 
+-- connected order ?
 makeQuery2 btype = unlines [
       "\n(push)\n(echo \"Is q connected ?\")",
       "(assert (not",

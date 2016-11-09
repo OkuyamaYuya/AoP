@@ -9,7 +9,7 @@ if [ ! -f ${FILE} ]; then
   exit ${ERR}
 
 else
-  result=`z3 -T:30 ${FILE}`
+  result=`z3 -T:15 ${FILE}`
 
   if  echo "$result" | grep "unsat" >/dev/null 2>&1; then
     echo "monotonic"

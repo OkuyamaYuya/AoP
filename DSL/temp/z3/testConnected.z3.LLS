@@ -1,0 +1,50 @@
+(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))
+(define-fun cons ((x  Int ) (xs (List  Int ))) (List  Int )
+  (insert x xs))
+(define-fun outr ((x  Int ) (xs (List  Int ))) (List  Int )
+  xs)
+(declare-fun leq (Int Int) Bool)
+(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))
+(declare-fun leq_lexico ((List Int) (List Int)) Bool)
+(assert (forall ((xs (List Int)) (ys (List Int)))
+  (= (leq_lexico xs ys)
+  (or
+    (= xs nil)
+    (< (head xs) (head ys))
+    (and (= (head xs) (head ys))
+         (leq_lexico (tail xs) (tail ys)))))))
+
+
+
+
+
+(declare-fun r ((List  Int )(List  Int )) Bool )
+(assert (forall ((x1  (List  Int ))(x2  (List  Int )))
+(= (r x1 x2 )(leq_lexico x1 x2 ))))
+
+(declare-fun q ((List  Int )(List  Int )) Bool )
+(assert (forall ((x1  (List  Int ))(x2  (List  Int )))
+(= (q x1 x2 )(leq_lexico x1 x2 ))))
+
+(define-fun p ((x (List  Int ))) Bool 
+true)
+
+(declare-const e1 (List  Int ))
+(assert (= e1 nil))
+
+(declare-fun f1 ( Int (List  Int ))(List  Int ))
+(assert (forall ((x1   Int )(x2  (List  Int )))
+(= (f1 x1 x2 )(cons x1 x2 ))))
+
+(declare-fun f2 ( Int (List  Int ))(List  Int ))
+(assert (forall ((x1   Int )(x2  (List  Int )))
+(= (f2 x1 x2 )(outr x1 x2 ))))
+
+
+(push)
+(echo "Is q connected ?")
+(assert (= false
+    (forall ((x (List  Int )) (y (List  Int )))
+          (or (q x y) (q y x)))))
+(check-sat)
+(pop)
