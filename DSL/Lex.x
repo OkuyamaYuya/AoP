@@ -42,6 +42,7 @@ tokens :-
     "BASETYPE" { \s -> T.Basetype }
     "LEFT" { \s -> T.LLabel }
     "RIGHT" { \s -> T.RLabel }
+    "INPUT" { \s -> T.Input }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {

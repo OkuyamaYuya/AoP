@@ -40,6 +40,7 @@ import qualified Token as T
   tyPair { T.TyPair }
   '--' { T.CommentOut }
   BASETYPE { T.Basetype }
+  INPUT    { T.Input }
   LEFT     { T.LLabel }
   RIGHT    { T.RLabel }
   eol { T.Eol  }
