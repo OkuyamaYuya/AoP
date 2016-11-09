@@ -14,11 +14,11 @@
 
 (push)
 (echo "Is connected ?")
-(assert (not
+(assert (= true
     (forall ((x (List Int)) (y (List Int)))
           (or
-            (leq_lexico x y)
-            (leq_lexico y x)
+            (not (leq_lexico x y))
+            (not (leq_lexico y x))
     ))
 ))
 (check-sat)

@@ -11,10 +11,10 @@ if [ ! -f ${FILE} ]; then
 else
   result=`z3 -T:30 ${FILE}`
 
-  if  echo "$result" | grep "unsat" >/dev/null 2>&1; then
-    echo "monotonic"
+  if [ "$result" = "unsat" ]; then
+    echo "connected"
   else
-    echo "not monotonic"
+    echo "not connected"
     exit $ERR
   fi
 

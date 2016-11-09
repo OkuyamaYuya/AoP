@@ -63,7 +63,7 @@
 
 (push)
 (echo "Is connected ?")
-(assert (= false
+(assert (= true
     (forall ((x (List (Pair Int Int))) (y (List (Pair Int Int))))
           (or
             (r x y)

@@ -58,10 +58,6 @@ defineCata name args typ (FOLDR f_e e_e) = aboutType ++ "\n" ++ aboutExpr
 
 header lx = 
         unlines $ [
-        "{-# LANGUAGE ExistentialQuantification #-}",
-        "{-# LANGUAGE ConstrainedClassMethods #-}",
-        "{-# LANGUAGE FlexibleContexts #-}",
-        "{-# LANGUAGE TypeOperators #-}",
         "import ListCata",
         "import Data.List (union)" ]
         ++ if lx then ["leq_lexico = (<=)"] else []

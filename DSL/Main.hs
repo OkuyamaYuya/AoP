@@ -23,7 +23,6 @@ prettyPrint s = case s of
     putStrLn $ "expr\n\t" ++ show e
     putStrLn "\n"
 
-z3file = "./temp/test.z3"
 hsfile = "./listcata/thinSolver.hs"
 
 main::IO()
@@ -44,11 +43,10 @@ main = do
             Accept _ -> do
               putStrLn "-- type check --\nOK"
               putStrLn "-- z3 code --"
-              let resultTransZ3 = transZ3 resultParse
+              resultTransZ3 <- transZ3 resultParse
               putStrLn resultTransZ3
-              writeFile z3file resultTransZ3
               putStrLn "-- check monotonicity --"
-              monotoneOrNot <- system "./monotoneCheck.sh"
+              monotoneOrNot <- system ("./monotoneCheck.sh " ++ z3Monotone)
               case monotoneOrNot of
                 ExitSuccess -> do
                   resultTransHs <- transHs resultParse

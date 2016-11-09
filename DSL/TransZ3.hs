@@ -1,4 +1,8 @@
-module TransZ3 (transZ3,getInfo) where
+module TransZ3 ( transZ3,
+                 getInfo,
+                 z3Monotone,
+                 z3Connected
+               ) where
 
 import Base
 import Lex
@@ -8,15 +12,20 @@ import Data.Map as Map
 import Data.List (isInfixOf)
 import Debug.Trace
 
-transZ3 :: Result Program -> String
+z3Monotone = "./temp/testMonotone.z3"
+z3Connected = "./temp/testConnected.z3"
+
+transZ3 :: Result Program -> IO String
 transZ3 prog = case prog of
-  Reject err -> show err
+  Reject err -> return err
   Accept (Program ss) ->
     case getInfo ss of
-      Reject err -> show err
-      Accept (_,rr,bb,lx) ->
-        header bb lx ++ (unlines $ fmap transZ3_ ss)
-        ++ makeQuery rr bb ++"\n(check-sat)"
+      Reject err -> return err
+      Accept (_,rr,bb,lx) -> do
+        let template = header bb lx ++ (unlines $ fmap transZ3_ ss)
+        writeFile z3Monotone (template ++ makeQuery rr bb)
+        writeFile z3Connected (template ++ makeQuery2 bb)
+        return template
 
 type LexicoUsed = Bool
 
@@ -125,7 +134,7 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
 -- Types of cons,outr,nil depend on a problem user defines.
 header :: TY -> LexicoUsed -> String
-header bt lx = unlines $ [ "",
+header bt lx = unlines $ [ 
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
     "(define-fun cons ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
     "  (insert x xs))",
@@ -133,7 +142,7 @@ header bt lx = unlines $ [ "",
     "  xs)",
     "(declare-fun leq (Int Int) Bool)",
     "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))" ] ++
-      if lx then ["",
+      if lx then [
     "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
     "(assert (forall ((xs (List Int)) (ys (List Int)))",
     "  (= (leq_lexico xs ys)",
@@ -145,8 +154,11 @@ header bt lx = unlines $ [ "",
 
 
 makeQuery :: [String] -> TY -> String
-makeQuery fs bt = a1 ++ a2 ++ a3
+makeQuery fs bt = "(push)\n" ++ comment ++ 
+                  a1 ++ a2 ++ a3 ++ 
+                  "\n(check-sat)\n(pop)"
   where
+    comment = "(echo \"Is q monotonic ?\")\n"
     a1 = unlines $ fmap declareBool fs
     a2 = do
       f <- fs
@@ -170,13 +182,23 @@ lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
 -- ))
 mainQuery f fs btype =
   let bf = "b" ++ f in
-    unlines $ [ "",
+    unlines $ [
     "(assert (= " ++ bf,
-    "    (forall ((xs (List " ++ showType btype ++ ")) (ys (List " ++ 
-                 showType btype ++ ")) (a " ++ showType btype ++ "))",
+    "    (forall ((xs (List " ++ bb ++ ")) (ys (List " ++ 
+                  bb ++ ")) (a " ++ bb ++ "))",
     "    (=> (q ys xs) ",
     "    (=> (p (" ++ f ++ " a ys))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
+        bb = showType btype
         target f g = "\t(and (p (" ++ g ++ " a xs)) (q (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
+
+makeQuery2 btype = unlines [
+      "\n(push)\n(echo \"Is q connected ?\")",
+      "(assert (not",
+      "    (forall ((x (List " ++ bb ++ ")) (y (List " ++ bb ++ ")))",
+      "          (or (q x y) (q y x)))))",
+      "(check-sat)\n(pop)" ]
+  where
+    bb = showType btype
 
