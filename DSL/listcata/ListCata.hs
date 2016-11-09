@@ -185,16 +185,19 @@ mapE funs set = nub $ aux funs set
 
 -- max R . (| thin Q . Λ ( S . F ∈ ) |)
 -- = max R . (| thin Q . E S . ΛF ∈ |)
-solverThinning :: Eq b => Funs a b -> Order b -> Order b -> List a -> b
-solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppL)
+solverThinning :: Eq b => Funs a b -> Order b -> Order b -> Predicate b -> List a -> b
+solverThinning funs r q p = maxSet r . foldF (thinSet q . filter p . mapE funs . cppL)
+-- solverThinning funs r q = maxSet r . foldF (thinSet q . mapE funs . cppL)
 
 -- (| max R . Λ S  |)
-solverGreedy :: Eq b => Funs a b -> Order b -> List a -> b
-solverGreedy funs q = foldF ( maxSet q . powerF funs )
+solverGreedy :: Eq b => Funs a b -> Order b -> Predicate b -> List a -> b
+solverGreedy funs q p = foldF ( maxSet q . filter p . powerF funs )
+-- solverGreedy funs q = foldF ( maxSet q . powerF funs )
 
 -- max R . (| Λ ( S . F ∈ ) |)
-solverNaive :: Eq b => Funs a b -> Order b -> List a -> b
-solverNaive funs r = maxSet r . foldF ( mapE funs . cppL)
+solverNaive :: Eq b => Funs a b -> Order b -> Predicate b -> List a -> b
+solverNaive funs r p = maxSet r . foldF ( filter p . mapE funs . cppL)
+-- solverNaive funs r p = maxSet r . foldF ( mapE funs . cppL)
 
 -- max R . filter p . (| Λ ( S . F ∈ ) |)
 -- = max R . filter p . (| E S . ΛF ∈ ) |)
@@ -208,9 +211,9 @@ data Mode = Thinning | Greedy | FilterNaive | Naive
 solverMain :: Eq b => Funs a b -> Predicate b -> Order b -> Order b -> Mode -> List a -> b
 solverMain funs p r q mode =
   case mode of
-    Thinning -> solverThinning funs r q
-    Greedy   -> solverGreedy funs q
-    Naive    -> solverNaive funs r
+    Thinning -> solverThinning funs r q p
+    Greedy   -> solverGreedy funs q p
+    Naive    -> solverNaive funs r p
     FilterNaive    -> solverFilterNaive funs p r
 
 -------------------------------------------------
