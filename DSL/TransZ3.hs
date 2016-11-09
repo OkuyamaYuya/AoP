@@ -1,4 +1,4 @@
-module TransZ3 ( transZ3 ) where
+module TransZ3 (transZ3,getInfo) where
 
 import Base
 import Lex
@@ -14,27 +14,36 @@ transZ3 prog = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> show err
-      Accept (fs,bt,lx) ->
-        header bt lx ++ (unlines $ fmap transZ3_ ss)
-        ++ makeQuery fs bt ++"\n(check-sat)"
+      Accept (_,rr,bb,lx) ->
+        header bb lx ++ (unlines $ fmap transZ3_ ss)
+        ++ makeQuery rr bb ++"\n(check-sat)"
 
 type LexicoUsed = Bool
 
-getInfo :: [Sentence] -> Result ([String],TY,LexicoUsed)
+getInfo :: [Sentence] -> Result ([String],[String],TY,LexicoUsed)
 getInfo ss =
-  let fs = findRight ss
-      bt = findBase ss
+  let ll = findLeft ss
+      rr = findRight ss
+      bb = findBase ss
       lx = findLexico ss
   in
-    case (fs,bt,lx) of
-      (Nothing,_,_) -> Reject "write 'RIGHT'."
-      (_,Nothing,_) -> Reject "write 'BASETYPE'."
-      (Just jfs,Just jbt,_) -> Accept (fmap showExpr jfs,jbt,lx)
+    case (ll,rr,bb,lx) of
+      (Nothing,_,_,_) -> 
+        Reject "write 'LEFT'."
+      (_,Nothing,_,_) -> 
+        Reject "write 'RIGHT'."
+      (_,_,Nothing,_) -> 
+        Reject "write 'BASETYPE'."
+      (Just jfs,Just jes,Just jbt,_) -> 
+        Accept (fmap showExpr jfs,fmap showExpr jes,jbt,lx)
   where
     -- find leftmost one.
     findRight [] = Nothing
     findRight ((RIGHT x):xs) = Just x
     findRight (_:xs) = findRight xs
+    findLeft [] = Nothing
+    findLeft ((LEFT x):xs) = Just x
+    findLeft (_:xs) = findLeft xs
     findBase [] = Nothing
     findBase ((BASETYPE x):xs) = Just x
     findBase (_:xs) = findBase xs

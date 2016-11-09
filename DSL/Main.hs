@@ -24,7 +24,7 @@ prettyPrint s = case s of
     putStrLn "\n"
 
 z3file = "./temp/test.z3"
-hsfile = "./temp/thin_or_greedy.hs"
+hsfile = "./listcata/thin_or_greedy.hs"
 
 main::IO()
 main = do
