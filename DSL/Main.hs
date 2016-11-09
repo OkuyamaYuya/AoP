@@ -24,13 +24,13 @@ prettyPrint s = case s of
     putStrLn "\n"
 
 z3file = "./temp/test.z3"
-hsfile = "./listcata/thin_or_greedy.hs"
+hsfile = "./listcata/thinSolver.hs"
 
 main::IO()
 main = do
   s <- (head <$> getArgs) >>= readFile
 
-  putStrLn "--syntax--"
+  putStrLn "-- syntax --"
   let (Accept (Program ls)) = parse.scanTokens $ s
   mapM_ prettyPrint ls
 
@@ -42,17 +42,22 @@ main = do
           case resultTyCheck of
             Reject err -> putStrLn $ "type error\n" ++ err
             Accept _ -> do
-              putStrLn "--type check--\nOK"
-              putStrLn "--z3 code--"
+              putStrLn "-- type check --\nOK"
+              putStrLn "-- z3 code --"
               let resultTransZ3 = transZ3 resultParse
               putStrLn resultTransZ3
               writeFile z3file resultTransZ3
-              -- execute monotoneCheck.sh
-              putStrLn "--check monotonicity--"
+              putStrLn "-- check monotonicity --"
               monotoneOrNot <- system "./monotoneCheck.sh"
               case monotoneOrNot of
                 ExitSuccess -> do
-                  let resultTransHs = transHs resultParse
+                  resultTransHs <- transHs resultParse
+                  putStrLn "-- Haskell code --"
                   putStrLn resultTransHs
                   writeFile hsfile resultTransHs
+                  putStrLn "-- run Haskell --"
+                  resultRun <- system "./runThinSolver.sh"
+                  return ()
                 _ -> putStrLn "Failure"
+
+
