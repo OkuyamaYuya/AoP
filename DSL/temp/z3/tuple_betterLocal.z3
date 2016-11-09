@@ -4,7 +4,6 @@
 ; example => (declare-const p1 (Pair Int Int))
 (declare-datatypes (T1 T2) ((Pair (mk-pair (first T1) (second T2)))))
 
-
 ; pair-plus
 ; example => (1,2) + (4,2) = (5,4)
 (define-fun pair-plus ((x (Pair Int Int)) (y (Pair Int Int))) (Pair Int Int)
@@ -31,6 +30,7 @@
         (= true (r a b))
         (= false (r a b)))))
 
+(push)
 (declare-const b1 Bool)
 (declare-const b2 Bool)
 
@@ -45,7 +45,6 @@
             (or (and (p (insert a xs)) (r (insert a ys) (insert a xs)))
                 (and (p xs) (r (insert a ys) xs))))))))
 
-
 ; check for outr
 ; forall a,xs,ys . ys `r` xs
 ;                  => p(ys)
@@ -57,7 +56,19 @@
             (or (and (p (insert a xs)) (r ys (insert a xs)))
                 (and (p xs) (r ys xs))))))))
 
+(echo "monotonic on R ?")
 (assert (not (and b1 b2)))
-
 (check-sat)
+(pop)
 
+(push)
+(echo "Is connected ?")
+(assert (= false
+    (forall ((x (List (Pair Int Int))) (y (List (Pair Int Int))))
+          (or
+            (r x y)
+            (r y x)
+    ))
+))
+(check-sat)
+(pop)

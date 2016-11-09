@@ -28,7 +28,9 @@
         (= true (q a b))
         (= false (q a b)))))
 
-; Is connected ?
+
+(push)
+(echo "Is r connected ?")
 (assert (= false
     (forall ((x (List (Pair Int Int))) (y (List (Pair Int Int))))
           (or
@@ -36,8 +38,18 @@
             (r y x)
     ))
 ))
-
-
-
-
 (check-sat)
+(pop)
+
+
+(push)
+(echo "Is q connected ?")
+(assert (= true
+    (forall ((x (List (Pair Int Int))) (y (List (Pair Int Int))))
+          (or
+            (q x y)
+            (q y x)
+    ))
+))
+(check-sat)
+(pop)

@@ -19,8 +19,6 @@
 ; not forall xs,ys,a . xs `r` ys => (a:xs) `r` (a:ys)
 (assert (not (forall ((xs (List Int)) (ys (List Int)) (a Int))
           (implies (r xs ys) (r (insert a xs) (insert a ys))))))
-(check-sat)
 
-
-
+(echo "better-local monotonic check")
 (check-sat)
