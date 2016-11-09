@@ -16,8 +16,8 @@ transHs prog = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return ""
-      Accept (_,_,_,lx) ->
-        return $ header lx ++ unlines (fmap transHs_ ss) ++ footer
+      Accept (_,_,_,lx,lq) ->
+        return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer
 
 showFuns :: [Expr] -> String
 showFuns [f] = "Just . " ++ showExprHs f
@@ -51,21 +51,23 @@ defineFun name args typ expr = aboutType ++ "\n" ++ aboutExpr
     aboutExpr  = name ++ " " ++ unwords args ++ " = " ++ showExprHs expr
 
 defineCata name args typ (FOLDR f_e e_e) = aboutType ++ "\n" ++ aboutExpr
-                                       ++ "\n  where\n    " ++ aboutWhere
+                                           ++ aboutWhere
   where
     f = showExprHs f_e
     e = showExprHs e_e
     -- aboutType = name ++ " :: " ++ showTypeHs typ
     aboutType = ""
-    aboutExpr = "foldF s"
-    aboutWhere = "s (Inl One) = " ++ e ++ "\n    " ++ 
-                 "s (Inr (Cross a b)) = " ++ f ++ " a b"
+    aboutExpr = name ++ " " ++ unwords args ++ " = foldF s"
+    aboutWhere = "\n  where\n" ++
+                 "    s (Inl One) = " ++ e ++ "\n" ++ 
+                 "    s (Inr (Cross a b)) = " ++ f ++ " a b"
 
-header lx = 
+header lx lq =
         unlines $ [
         "import ListCata",
         "import Data.List (union)" ]
         ++ if lx then ["leq_lexico = (<=)"] else []
+        ++ if lq then ["leq = (<=)"] else []
 
 footer = aboutSolver ++ "\n" ++ aboutMain
   where

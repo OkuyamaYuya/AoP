@@ -3,6 +3,8 @@
 BASETYPE : Pair Int Int
 LEFT     : [e1]
 RIGHT    : [f1,f2]
+INPUT : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
+
 
 pairPlus p1 p2 :
   (Pair Int Int)->(Pair Int Int)->(Pair Int Int) =

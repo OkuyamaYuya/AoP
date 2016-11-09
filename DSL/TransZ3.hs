@@ -21,30 +21,31 @@ transZ3 prog = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return err
-      Accept (_,rr,bb,lx) -> do
+      Accept (_,rr,bb,lx,lq) -> do
         let template = header bb lx ++ (unlines $ fmap transZ3_ ss)
         writeFile z3Monotone (template ++ makeQuery rr bb)
         writeFile z3Connected (template ++ makeQuery2 bb)
         return template
 
-type LexicoUsed = Bool
+type Used = Bool
 
-getInfo :: [Sentence] -> Result ([String],[String],TY,LexicoUsed)
+getInfo :: [Sentence] -> Result ([String],[String],TY,Used,Used)
 getInfo ss =
   let ll = findLeft ss
       rr = findRight ss
       bb = findBase ss
       lx = findLexico ss
+      lq = findLeq ss
   in
-    case (ll,rr,bb,lx) of
-      (Nothing,_,_,_) -> 
+    case (ll,rr,bb) of
+      (Nothing,_,_) -> 
         Reject "write 'LEFT'."
-      (_,Nothing,_,_) -> 
+      (_,Nothing,_) -> 
         Reject "write 'RIGHT'."
-      (_,_,Nothing,_) -> 
+      (_,_,Nothing) -> 
         Reject "write 'BASETYPE'."
-      (Just jfs,Just jes,Just jbt,_) -> 
-        Accept (fmap showExpr jfs,fmap showExpr jes,jbt,lx)
+      (Just jll,Just jrr,Just jbb) -> 
+        Accept (fmap showExpr jll,fmap showExpr jrr,jbb,lx,lq)
   where
     -- find leftmost one.
     findRight [] = Nothing
@@ -61,6 +62,11 @@ getInfo ss =
       | isInfixOf "leq_lexico" (show e) = True
       | otherwise = findLexico xs
     findLexico (_:xs) = findLexico xs
+    findLeq [] = False
+    findLeq ((BIND _ _ _ e):xs)
+      | isInfixOf "leq" (show e) = True
+      | otherwise = findLeq xs
+    findLeq (_:xs) = findLeq xs
 
 transZ3_ (LEFT _) = ""
 transZ3_ (RIGHT _) = ""
@@ -134,7 +140,7 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
 
 -- Types of cons,outr,nil depend on a problem user defines.
-header :: TY -> LexicoUsed -> String
+header :: TY -> Used -> String
 header bt lx = unlines $ [ 
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
     "(define-fun cons ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
