@@ -16,11 +16,16 @@ transHs prog = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return ""
-      Accept (ll,rr,_,lx) ->
-        return $ header lx ++ unlines (fmap transHs_ ss) ++ footer ll rr
+      Accept (_,_,_,lx) ->
+        return $ header lx ++ unlines (fmap transHs_ ss) ++ footer
 
-transHs_ (LEFT _) = ""
-transHs_ (RIGHT _) = ""
+showFuns :: [Expr] -> String
+showFuns [f] = "Just . " ++ showExprHs f
+showFuns (f:fs) = "Just . " ++ showExprHs f ++ " , " ++ showFuns fs
+
+transHs_ (LEFT ll)  = "lfuns = [ " ++ showFuns ll ++ " ]"
+transHs_ (RIGHT rr) = "rfuns = [ " ++ showFuns rr ++ " ]"
+transHs_ (INPUT xs) = "input_data = " ++ showExprHs (LIST xs)
 transHs_ (BASETYPE _) = ""
 transHs_ CommentOut = ""
 transHs_ (BIND varName varArgs varType varExpr) = case varExpr of
@@ -62,20 +67,11 @@ header lx =
         "import Data.List (union)" ]
         ++ if lx then ["leq_lexico = (<=)"] else []
 
-
-footer lfuns rfuns = sF ++ "\n  where\n" 
-                     ++ aboutL ++ "\n" ++ aboutR
-                     ++ "\n" ++ aboutSolver
-                     ++ "\n" ++ aboutMain
+footer = aboutSolver ++ "\n" ++ aboutMain
   where
-    sF = "sF = (funs1,funs2)"
-    aboutL = "    funs1 = [ " ++ showFuns lfuns ++ " ]"
-    aboutR = "    funs2 = [ " ++ showFuns rfuns ++ " ]"
-    showFuns [f] = "Just . " ++ f
-    showFuns (f:fs) = "Just . " ++ f ++ " , " ++ showFuns fs
-    aboutSolver = "thin_or_greedy = solverMain sF p r q"
-    aboutMain = "main = do\n" ++
-                "  print.fromList.thin_or_greedy Greedy $ toList [1,34,2,1,44]"
+    aboutSolver = "thin_or_greedy = solverMain (lfuns,rfuns) p r q"
+    aboutMain = "main =" ++
+                "  print.fromList.thin_or_greedy Thinning $ toList input_data"
 
 -- main = do
 --   putStrLn $ transHs_ (BIND "sum" ["xs"] (FUN (LISTty INT) INT) (FOLDR (VAR "f") (NAT 0)))
