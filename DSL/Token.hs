@@ -6,6 +6,7 @@ data Token = Int Int
            | Eq
            | And
            | Or
+           | Leq
            | Plus
            | Minus
            | Times

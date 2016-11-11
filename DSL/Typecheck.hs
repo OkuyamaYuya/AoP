@@ -103,6 +103,9 @@ tycheck_ e env = case e of
   TIMES e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
                     then INT 
                     else BOTTOM "(*)::INT->INT->INT"
+  LEQ e1 e2 -> if (tycheck_ e1 env,tycheck_ e2 env) == (INT,INT) 
+                    then BOOL
+                    else BOTTOM "(<=)::INT->INT->INT"
   EQU e1 e2  ->   let t1 = tycheck_ e1 env
                       t2 = tycheck_ e2 env in
                   if t1 == t2

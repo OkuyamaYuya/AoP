@@ -55,6 +55,7 @@ data Expr = NAT Int
           | MINUS Expr Expr
           | TIMES Expr Expr
           | EQU  Expr Expr
+          | LEQ  Expr Expr
           | AND  Expr Expr
           | OR Expr Expr
           | APP Expr Expr
@@ -81,6 +82,7 @@ instance ShowExpr Expr where
   showExpr (AND a b) = "(and " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
   showExpr (OR a b)  = "(or " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
   showExpr (EQU a b) = "(= " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
+  showExpr (LEQ a b) = "(<= " ++ showExpr a ++ " "  ++ showExpr b ++ ")"
   showExpr (APP (APP a b) c) = "(" ++ showExpr a ++ " " ++ showExpr b ++ " " ++ showExpr c ++ ")"
   showExpr (APP a b) = "(" ++ showExpr a ++ " " ++ showExpr b ++ ")"
   showExpr (IF c t f) = "(ite " ++ showExpr c ++ showExpr t ++ showExpr f ++ ")"
@@ -99,6 +101,7 @@ instance ShowExprHs Expr where
   showExprHs (AND a b) = "(" ++ showExprHs a ++ " && "  ++ showExprHs b ++ ")"
   showExprHs (OR a b)  = "(" ++ showExprHs a ++ " || "  ++ showExprHs b ++ ")"
   showExprHs (EQU a b) = "(" ++ showExprHs a ++ " == "  ++ showExprHs b ++ ")"
+  showExprHs (LEQ a b) = "(" ++ showExprHs a ++ " <= "  ++ showExprHs b ++ ")"
   showExprHs (APP a b) = "(" ++ showExprHs a ++ " " ++ showExprHs b ++ ")"
   showExprHs (IF c t f) = "if " ++ showExprHs c ++ " then " ++ showExprHs t ++ " else " ++ showExprHs f
   showExprHs (LIST as) = "[" ++ mapLike showExprHs as ++ "]"

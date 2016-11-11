@@ -33,6 +33,7 @@ import qualified Token as T
   ',' { T.Comma }
   ':' { T.Colon }
   '=' { T.Assign }
+  '<=' { T.Leq }
   '->' { T.Arrow }
   tyInt  { T.TyInt }
   tyBool { T.TyBool }
@@ -87,6 +88,7 @@ Expr_ :
   | Expr '&&' Expr          { S.AND   $1  $3 }
   | Expr '||' Expr          { S.OR    $1  $3 }
   | Expr '==' Expr          { S.EQU   $1  $3 }
+  | Expr '<=' Expr          { S.LEQ   $1  $3 }
   | '(' Expr ')'            { $2 }
   | int                     { S.NAT $1 }
   | '-' int                 { S.NAT (-1 * $2) }

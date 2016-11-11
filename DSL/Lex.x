@@ -24,6 +24,7 @@ tokens :-
     "+" { \s -> T.Plus }
     "*" { \s -> T.Times }
     "==" { \s -> T.Eq }
+    "<=" { \s -> T.Leq }
     "||" { \s -> T.Or }
     "&&" { \s -> T.And }
     "if" { \s -> T.If }

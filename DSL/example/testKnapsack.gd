@@ -20,13 +20,12 @@ w : Int = 10
 
 p x : (List (Int,Int))->Bool = leq (sumWt x) w
 
+
 r a b :
-  (List (Int,Int))->(List (Int,Int))->Bool =
-  leq (sumVal a) (sumVal b)
+  (List (Int,Int))->(List (Int,Int))->Bool = sumVal a <= sumVal b
 
 q a b :
-  (List (Int,Int))->(List (Int,Int))->Bool =
-  (leq (sumVal a) (sumVal b)) && ((sumWt a) == (sumWt b))
+  (List (Int,Int))->(List (Int,Int))->Bool = (sumVal a <= sumVal b) && (sumWt a == sumWt b)
 
 e1 : (List (Int,Int)) = nil
 f1 : ((Int,Int),(List (Int,Int))) -> (List (Int,Int)) = cons
