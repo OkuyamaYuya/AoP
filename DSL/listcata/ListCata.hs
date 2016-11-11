@@ -219,7 +219,7 @@ solverMain funs p r q mode =
 -------------------------------------------------
 
 out (In x) = x
-nil x = In (Inl One)
+nil = In (Inl One)
 cons (Inr x) = In (Inr x)
 outl (Inr (Cross x y)) = x
 outr (Inr (Cross x y)) = y
@@ -242,15 +242,15 @@ subsequences :: Eq a => List a -> Set (List a)
 subsequences = foldF ( mapE funs . cppL )
   where
     funs = (funs1,funs2)
-    funs1 = [ Just . nil ]
+    funs1 = [ Just . const nil ]
     funs2 = [ Just . cons , Just . outr ]
 
 inits :: Eq a => List a -> Set (List a)
 inits = foldF ( mapE funs . cppL )
   where
     funs = (funs1,funs2)
-    funs1 = [ Just . nil ]
-    funs2 = [ Just . cons , Just . nil ]
+    funs1 = [ Just . const nil ]
+    funs2 = [ Just . cons , Just . const nil ]
 
 tails' :: List a -> Set (List a)
 tails' = foldF tailF

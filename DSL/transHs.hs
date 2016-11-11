@@ -25,7 +25,11 @@ showFuns :: [Expr] -> String
 showFuns [f] = "Just . " ++ showExprHs f
 showFuns (f:fs) = "Just . " ++ showExprHs f ++ " , " ++ showFuns fs
 
-transHs_ (LEFT ll)  = "lfuns = [ " ++ showFuns ll ++ " ]"
+showConst :: [Expr] -> String
+showConst [f] = "Just . const " ++ showExprHs f
+showConst (f:fs) = "Just . const " ++ showExprHs f ++ " , " ++ showConst fs
+
+transHs_ (LEFT ll)  = "lfuns = [ " ++ showConst ll ++ " ]"
 transHs_ (RIGHT rr) = "rfuns = [ " ++ showFuns rr ++ " ]"
 transHs_ (INPUT xs) = "input_data = " ++ showExprHs (LIST xs)
 transHs_ (BASETYPE _) = ""

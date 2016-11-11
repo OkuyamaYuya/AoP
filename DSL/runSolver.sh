@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILE="thinSolver.hs"
+FILE="Solver.hs"
 ERR=1
 
 cd ./listcata
@@ -11,7 +11,8 @@ if [ ! -f ${FILE} ]; then
   exit ${ERR}
 
 else
-  result=`runghc ${FILE}`
-  echo ${result}
-fi
 
+  result=`runghc ${FILE}`
+  echo $result
+
+fi

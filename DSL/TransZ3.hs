@@ -9,6 +9,7 @@ import Base
 import Lex
 import Parse
 import Syntax
+import Typecheck
 import Data.Map as Map
 import Data.List (isInfixOf)
 import Debug.Trace
@@ -17,14 +18,14 @@ z3MonotoneR = "./temp/testMonotoneR.z3"
 z3MonotoneQ = "./temp/testMonotoneQ.z3"
 -- z3Connected = "./temp/testConnected.z3"
 
-transZ3 :: Result Program -> IO String
-transZ3 prog = case prog of
+transZ3 :: Result Program -> ENV_ty -> IO String
+transZ3 prog env = case prog of
   Reject err -> return err
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return err
       Accept (_,rr,bb,lx,lq) -> do
-        let template = header bb lx ++ (unlines $ fmap transZ3_ ss)
+        let template = header bb lx ++ (unlines $ fmap (transZ3_ env) ss)
         writeFile z3MonotoneR (template ++ makeQuery rr bb "r")
         writeFile z3MonotoneQ (template ++ makeQuery rr bb "q")
         -- writeFile z3Connected (template ++ makeQuery2 bb)
@@ -71,28 +72,32 @@ getInfo ss =
       | otherwise = findLeq xs
     findLeq (_:xs) = findLeq xs
 
-transZ3_ (LEFT _) = ""
-transZ3_ (RIGHT _) = ""
-transZ3_ (BASETYPE _) = ""
-transZ3_ (INPUT _) = ""
-transZ3_ CommentOut = ""
-transZ3_ (BIND varName varArgs varType varExpr) = case varExpr of
+transZ3_ _ (LEFT _) = ""
+transZ3_ _ (RIGHT _) = ""
+transZ3_ _ (BASETYPE _) = ""
+transZ3_ _ (INPUT _) = ""
+transZ3_ _ CommentOut = ""
+transZ3_ typEnv (BIND varName varArgs varType varExpr) = case varExpr of
   VAR _ -> case varType of
-            FUN _ _ -> declareFun varName varType varExpr
-            _       -> declareConst varName varType varExpr
+            FUN _ _ -> defineFun varName varArgs varType varExpr typEnv
+            _       -> defineConst varName varType varExpr
   FOLDR _ _ -> declareRecFun varName varType varExpr
   _ -> case varType of
-        FUN _ _ -> defineFun varName varArgs varType varExpr
-        _       -> declareConst varName varType varExpr
+        FUN _ _ -> defineFun varName varArgs varType varExpr typEnv
+        _       -> defineConst varName varType varExpr
 
 -- [x,y] -> (a -> b -> c) -> "((x a) (y b)) (c)"
 argTuple :: [String] -> TY -> String
-argTuple as ts = concat $ zipWith aux as (types $ ts)
+argTuple as ts = concat $ zipWith aux as (dom $ ts)
   where aux x t = "(" ++ x ++ " " ++ t ++ ")"
+
+-- ["x1 ","x2 ","x3 "..]
+argSequence sz = fmap (\i -> "x" ++ show i ++ " ") [1..sz]
+
 -- FUN a (FUN b c) -> [a,b]
-types :: TY -> [String]
-types (FUN a b) = showType a : types b
-types _         = []
+dom :: TY -> [String]
+dom (FUN a b) = showType a : dom b
+dom _         = []
 
 cod :: TY -> String
 cod (FUN a b) = cod b
@@ -106,25 +111,41 @@ declareConst x typ v = unlines [a1,a2]
     a2 = "(assert (= " ++ x ++ " " ++ showExpr v ++ "))"
 
 
+-- (declare-const x typ
+--  v )
+defineConst x typ v = unlines [a1,a2]
+  where
+    a1 = "(define-const " ++ x ++ " " ++ showType typ
+    a2 = showExpr v ++ ")"
+
 -- (declare-fun f ((t1) (t2) .. ) (tn))
 -- (assert (forall ((x1 t1) (x2 t2) ..)
 --         (= (f x1 x2 ..) (hoge x1 x2))))
-declareFun f typ v = unlines [a1,a2,a3]
-  where
-    a1 = "(declare-fun " ++ f ++ " " ++ showType typ ++ ")"
-    a2 = "(assert (forall (" ++ (argTuple argSequence typ) ++ ")"
-    a3 = "(= " ++ mkApp f ++ mkApp (showExpr v) ++ ")))"
-    sz = length (types typ)
-    argSequence = fmap (\i -> "x" ++ show i ++ " ") [1..sz]
-    mkApp f = "(" ++ f ++ " " ++ (concat argSequence) ++ ")"
-
+-- declareFun f typ v = unlines [a1,a2,a3]
+--   where
+--     a1 = "(declare-fun " ++ f ++ " " ++ showType typ ++ ")"
+--     a2 = "(assert (forall (" ++ (argTuple args typ) ++ ")"
+--     a3 = "(= " ++ mkApp f ++ mkApp (showExpr v) ++ ")))"
+--     sz = length (dom typ)
+--     args = argSequence sz
+--     mkApp f = "(" ++ f ++ " " ++ (concat args) ++ ")"
 
 -- (define-fun f ((x t1) (y t2)) t3 
 --   hogehoge )
-defineFun f as typ expr = unlines [a1,a2]
+defineFun f as typ expr env = unlines [a1,a2]
   where
-    a1 = "(define-fun " ++ f ++ " (" ++ argTuple as typ ++ ")" ++ cod typ
-    a2 = showExpr expr ++ ")"
+    a1 = "(define-fun " ++ f ++ " (" ++ argTuple args typ ++ ")" ++ cod typ
+    a2
+      | isFunctionOrNot expr = "(" ++ showExpr expr ++ " " ++ concat argsMk ++ "))"
+      | otherwise = showExpr expr ++ " " ++ concat argsMk ++ ")"
+    argsMk = argSequence (length (dom typ) - length as)
+    args = as ++ argsMk
+    isFunctionOrNot e = case tycheck_ e env of
+      FUN _ _ -> True
+      _ -> False
+
+-- f : int -> int -> int = (+)
+-- f x y = (+ x y)
 
 -- (declare-fun pair-sum ((List (Pair Int Int))) (Pair Int Int))
 -- (assert (forall ((xs (List (Pair Int Int))))
@@ -146,12 +167,12 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 header :: TY -> Used -> String
 header bt lx = unlines $ [ 
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
-    "(define-fun cons ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
-    "  (insert x xs))",
-    "(define-fun outr ((x "++showType bt++") (xs (List "++showType bt++"))) (List "++showType bt++")",
-    "  xs)",
-    "(declare-fun leq (Int Int) Bool)",
-    "(assert (forall ((x Int) (y Int)) (= (<= x y) (leq x y))))" ] ++
+    "(define-fun cons ((x (Pair "++showType bt++" (List "++showType bt++")))) (List "++showType bt++")",
+    "  (insert (fst x) (snd x)))",
+    "(define-fun outr ((x (Pair "++showType bt++" (List "++showType bt++")))) (List "++showType bt++")",
+    "  (snd x))",
+    "(define-fun leq ((x Int) (y Int)) Bool",
+    "(<= x y))" ] ++
       if lx then [
     "(declare-fun leq_lexico ((List Int) (List Int)) Bool)",
     "(assert (forall ((xs (List Int)) (ys (List Int)))",
@@ -164,11 +185,10 @@ header bt lx = unlines $ [
 
 
 makeQuery :: [String] -> TY -> String -> String
-makeQuery fs bt order = "(push)\n" ++ comment ++ 
+makeQuery fs bt order = "(push)\n" ++
                   a1 ++ a2 ++ a3 ++ 
                   "\n(check-sat)\n(pop)"
   where
-    comment = "(echo \"Is q monotonic ?\")\n"
     a1 = unlines $ fmap declareBool fs
     a2 = do
       f <- fs
@@ -197,11 +217,12 @@ mainQuery f fs btype order =
     "    (forall ((xs (List " ++ bb ++ ")) (ys (List " ++ 
                   bb ++ ")) (a " ++ bb ++ "))",
     "    (=> (" ++ order ++ " ys xs) ",
-    "    (=> (p (" ++ f ++ " a ys))",
+    "    (=> (p (" ++ f ++ " (mk-pair a ys)))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
         bb = showType btype
-        target f g = "\t(and (p (" ++ g ++ " a xs)) (" ++ order ++ " (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
+        target f g = "\t(and (p (" ++ g ++ " (mk-pair a xs))) (" ++ order ++
+                     " (" ++ f ++ " (mk-pair a ys)) (" ++ g++ " (mk-pair a xs))))"
 
 -- connected order ?
 makeQuery2 btype = unlines [

@@ -89,6 +89,7 @@ Expr_ :
   | Expr '==' Expr          { S.EQU   $1  $3 }
   | '(' Expr ')'            { $2 }
   | int                     { S.NAT $1 }
+  | '-' int                 { S.NAT (-1 * $2) }
   | var                     { S.VAR $1 }
   | bool                    { S.B $1 }
   | if Expr then Expr else Expr        { S.IF $2 $4 $6 }
@@ -106,6 +107,7 @@ Type :
   | tyList Type { S.LISTty $2 }
   | tyPair Type Type { S.PAIRty $2 $3 }
   | Type '->' Type { S.FUN $1 $3 }
+  | '(' Type ',' Type ')' { S.PAIRty $2 $4 }
   | '(' Type ')'   { $2 }
 
 All :

@@ -1,4 +1,7 @@
-module Typecheck (tycheckFile,tycheck) where
+module Typecheck (tycheck,
+                  tycheck_,
+                  ENV_ty,
+                  envLook ) where
 
 import Syntax
 import Parse
@@ -11,7 +14,7 @@ import Debug.Trace
 type ENV_ty = Map String TY
 
 ------------------------
-fa a b = FUN a (FUN b b)
+fa a b = FUN (PAIRty a b) b
 default_env a = fromList[("nil"  ,(LISTty a)),
                          ("cons" ,fa a (LISTty a)),
                          ("outr" ,fa a (LISTty a)),
@@ -22,8 +25,6 @@ default_env a = fromList[("nil"  ,(LISTty a)),
                          ("leq_lexico" ,FUN (LISTty INT) (FUN (LISTty INT) BOOL)),
                          (""     ,BOTTOM "")]
 ------------------------
-
-tycheckFile s = tycheck.parse.scanTokens <$> readFile s
 
 tycheck prog = case prog of
   Reject err -> Reject err

@@ -54,8 +54,9 @@ knapF :: Funs Item (List Item)
 knapF = (funs1,funs2)
   where
     p = within 10
-    funs1 = [ Just . nil ]
-    funs2 = [ Just . outr , test p . cons ]
+    funs1 = [ Just . const nil ]
+    funs2 = [ Just . outr , Just . cons ]
+    -- funs2 = [ Just . outr , test p . cons ]
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 
@@ -76,7 +77,7 @@ llsQ = (<=)
 llsF :: Ord a => Funs a (List a)
 llsF = (funs1,funs2)
   where
-    funs1 = [ Just . nil ]
+    funs1 = [ Just . const nil ]
     funs2 = [ Just . outr , Just . cons ]
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
@@ -98,7 +99,10 @@ llsMain = solverMain llsF (\x->True) llsR llsQ
 --
 -- 以下は、thinning で解いている.
 --
-
+-- 現在、
+--    min R . (| thin q . filter p . E S . Λ F in  |)
+-- に変更したので、filter p がうまくいっていない.
+--
 
 
 data Stop = Stop { pos :: Int } deriving (Show,Eq,Ord)
@@ -123,7 +127,7 @@ gasOK full goal = \x -> (fst (foldF f (cons $ Inr (Cross goal x))) <= full)
 driveF :: Funs Stop (List Stop)
 driveF = (funs1,funs2)
   where
-    funs1 = [ Just . nil ]
+    funs1 = [ Just . const nil ]
     funs2 = [ aux cons , aux outr ]
     aux g (x@(Inr (Cross a b))) = test (gasOK 70 a) (g x)
 
@@ -136,8 +140,8 @@ driveMain mode x = solverMain driveF (gasOK 70 (headL x)) driveR driveQ mode x
 knapFuns = map knapMain [ Naive,Thinning ]
 itemss    = [ items1 , items2 ]
 items1 = toList [ Item 50 4, Item 3 12, Item 1 1 ,  Item 10 5,
-               Item 40 5, Item 30 6, Item 100 2, Item 3 4,
-               Item 4 53, Item 4 2 , Item 32 3 , Item 3 2 ]
+                  Item 40 5, Item 30 6, Item 100 2, Item 3 4,
+                  Item 4 53, Item 4 2 , Item 32 3 , Item 3 2 ]
 items2 = toList [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 
 llsFuns = map llsMain [ Thinning,Greedy ]
@@ -145,11 +149,9 @@ strings  = [ string1 , string2 ]
 string1 = toList "todai"
 string2 = toList "universityoftokyo"
 
-driveFuns = map driveMain [ FilterNaive,Naive,Thinning,Greedy ]
-stopss = [ stops1 , stops2 ]
+driveFuns = map driveMain [ Naive,Thinning ]
+stopss = [ stops1 ]
 stops1 = toList $ map Stop [300,260,190,180,170,120,90,50,20,5]
-stops2 = toList $ map Stop [300,260,190,170,120,90,40]
-
 
 fff (funs,inputs) =
   mapM_ (print.fromList) $ do
@@ -178,11 +180,8 @@ thinSet' q = scanr step []
 
 -------------------------------------------------
 
-
 main :: IO()
 main = do
   fff (knapFuns,itemss)
   fff (llsFuns,strings)
   fff (driveFuns,stopss)
-
-

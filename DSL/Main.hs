@@ -34,7 +34,7 @@ processHaskell parsed mode = do
   putStrLn resultTransHs
   writeFile hsfile resultTransHs
   putStrLn "-- run Haskell --"
-  resultRun <- system runScript
+  system runScript
   return ()
 
 main::IO()
@@ -50,10 +50,10 @@ main = do
         let resultTyCheck = tycheck resultParse
         case resultTyCheck of
           Reject err -> putStrLn $ "type error\n" ++ err
-          Accept _ -> do
+          Accept env -> do
             putStrLn "-- type check --\nOK"
             putStrLn "-- z3 code --"
-            resultTransZ3 <- transZ3 resultParse
+            resultTransZ3 <- transZ3 resultParse env
             putStrLn resultTransZ3
             putStrLn "-- check monotonicity - global criterion --"
             monotonicOnR <- monotoneCheck z3MonotoneR

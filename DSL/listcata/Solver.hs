@@ -3,33 +3,27 @@ import Data.List (union)
 leq = (<=)
 
 
-lfuns = [ Just . e1 ]
+input_data = [1,-1,1,-3,10,-1,2,-111,2,2]
+lfuns = [ Just . const e1 ]
 rfuns = [ Just . f1 , Just . f2 ]
-input_data = [(50 , 4),(3 , 12),(1 , 1),(10 , 5),(4 , 31),(4 , 2)]
 
-pairPlus p1 p2 = (((fst p1) + (fst p2)) , ((snd p1) + (snd p2)))
+plus x y = (x + y)
 
-pairSum  = foldF s
+mySum  = foldF s
   where
-    s (Inl One) = (0 , 0)
-    s (Inr (Cross a b)) = pairPlus a b
+    s (Inl One) = 0
+    s (Inr (Cross a b)) = plus a b
 
-sumVal x = (fst (pairSum x))
+r a b = ((leq (mySum a)) (mySum b))
 
-sumWt x = (snd (pairSum x))
+q a b = ((leq (mySum a)) (mySum b))
 
-w = 10
-
-p x = ((leq (sumWt x)) w)
-
-r a b = ((leq (sumVal a)) (sumVal b))
-
-q a b = (((leq (sumVal a)) (sumVal b)) && ((sumWt a) == (sumWt b)))
+p x = True
 
 e1 = nil
 
 f1 = cons
 
-f2 = outr
+f2 a = nil
 thin_or_greedy = solverMain (lfuns,rfuns) p r q
-main =  print.fromList.thin_or_greedy Thinning $ toList input_data
+main =  print.fromList.thin_or_greedy Greedy $ toList input_data
