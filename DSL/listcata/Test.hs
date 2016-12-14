@@ -147,7 +147,7 @@ items2 = toList [ Item 10 5 , Item 40 5 , Item 30 5 , Item 50 5 , Item 100 5]
 llsFuns = map llsMain [ Thinning,Greedy ]
 strings  = [ string1 , string2 ]
 string1 = toList "todai"
-string2 = toList "universityoftokyo"
+string2 = toList "dynamic"
 
 driveFuns = map driveMain [ Naive,Thinning ]
 stopss = [ stops1 ]
