@@ -1,9 +1,9 @@
 -- 0-1 knapsack problem
 
-BASETYPE : Pair Int Int
-LEFT     : [e1]
-RIGHT    : [f1,f2]
-INPUT : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
+TYPE : (Int,Int)
+BASE : [e1]
+STEP : [f1,f2]
+INSTANCE : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
 
 
 pairPlus p1 p2 :
@@ -18,7 +18,7 @@ sumWt x : (List (Int,Int))->Int = snd (pairSum x)
 
 w : Int = 10
 
-p x : (List (Int,Int))->Bool = leq (sumWt x) w
+p x : (List (Int,Int))->Bool = (sumWt x) <= w
 
 
 r a b :

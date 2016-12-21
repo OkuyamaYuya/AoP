@@ -1,9 +1,9 @@
 -- maximum init sum
 
-BASETYPE : Int
-INPUT : [1,-1,1,-3,10,-1,2,-111,2,2]
-LEFT  : [e1]
-RIGHT : [f1,f2]
+TYPE : Int
+BASE : [e1]
+STEP : [f1,f2]
+INSTANCE : [1,-1,1,-3,10,-1,2,-111,2,2]
 
 plus x y : Int -> Int -> Int = x + y
 mySum : (List Int)->Int = foldr plus 0
