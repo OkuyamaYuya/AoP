@@ -103,24 +103,10 @@ cod :: TY -> String
 cod (FUN a b) = cod b
 cod a = showType a
 
--- (declare-const x typ
---  v )
 defineConst x typ v = unlines [a1,a2]
   where
     a1 = "(define-const " ++ x ++ " " ++ showType typ
     a2 = showExpr v ++ ")"
-
--- (declare-fun f ((t1) (t2) .. ) (tn))
--- (assert (forall ((x1 t1) (x2 t2) ..)
---         (= (f x1 x2 ..) (hoge x1 x2))))
--- declareFun f typ v = unlines [a1,a2,a3]
---   where
---     a1 = "(declare-fun " ++ f ++ " " ++ showType typ ++ ")"
---     a2 = "(assert (forall (" ++ (argTuple args typ) ++ ")"
---     a3 = "(= " ++ mkApp f ++ mkApp (showExpr v) ++ ")))"
---     sz = length (dom typ)
---     args = argSequence sz
---     mkApp f = "(" ++ f ++ " " ++ (concat args) ++ ")"
 
 -- (define-fun f ((x t1) (y t2)) t3 
 --   hogehoge )
@@ -135,9 +121,6 @@ defineFun f as typ expr env = unlines [a1,a2]
     isFunctionOrNot e = case tycheck_ e env of
       FUN _ _ -> True
       _ -> False
-
--- f : int -> int -> int = (+)
--- f x y = (+ x y)
 
 -- (declare-fun pair-sum ((List (Pair Int Int))) (Pair Int Int))
 -- (assert (forall ((xs (List (Pair Int Int))))
