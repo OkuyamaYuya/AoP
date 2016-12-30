@@ -103,14 +103,6 @@ cod :: TY -> String
 cod (FUN a b) = cod b
 cod a = showType a
 
--- (declare-const x typ)
--- (assert (= x v))
-declareConst x typ v = unlines [a1,a2]
-  where
-    a1 = "(declare-const " ++ x ++ " " ++ showType typ ++ ")"
-    a2 = "(assert (= " ++ x ++ " " ++ showExpr v ++ "))"
-
-
 -- (declare-const x typ
 --  v )
 defineConst x typ v = unlines [a1,a2]
