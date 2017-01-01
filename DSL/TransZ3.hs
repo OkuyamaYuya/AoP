@@ -142,10 +142,10 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 header :: TY -> Used -> String
 header bt lx = unlines $ [ 
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
-    "(define-fun cons ((x (Pair "++showType bt++" (List "++showType bt++")))) (List "++showType bt++")",
-    "  (insert (fst x) (snd x)))",
-    "(define-fun outr ((x (Pair "++showType bt++" (List "++showType bt++")))) (List "++showType bt++")",
-    "  (snd x))",
+    "(define-fun cons ((x "++showType bt++") (y (List"++showType bt++"))) (List "++showType bt++")",
+    "  (insert x y))",
+    "(define-fun outr ((x "++showType bt++") (y (List"++showType bt++"))) (List "++showType bt++")",
+    "  y)",
     "(define-fun leq ((x Int) (y Int)) Bool",
     "(<= x y))" ] ++
       if lx then [
@@ -192,12 +192,12 @@ mainQuery f fs btype order =
     "    (forall ((xs (List " ++ bb ++ ")) (ys (List " ++ 
                   bb ++ ")) (a " ++ bb ++ "))",
     "    (=> (" ++ order ++ " ys xs) ",
-    "    (=> (p (" ++ f ++ " (mk-pair a ys)))",
+    "    (=> (p (" ++ f ++ " a ys))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
         bb = showType btype
-        target f g = "\t(and (p (" ++ g ++ " (mk-pair a xs))) (" ++ order ++
-                     " (" ++ f ++ " (mk-pair a ys)) (" ++ g++ " (mk-pair a xs))))"
+        target f g = "\t(and (p (" ++ g ++ " a xs)) (" ++ order ++
+                     " (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
 
 -- connected order ?
 makeQuery2 btype = unlines [

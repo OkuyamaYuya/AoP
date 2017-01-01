@@ -10,24 +10,14 @@ pairPlus p1 p2 :
   (Int,Int)->(Int,Int)->(Int,Int) =
   (fst p1 + fst p2 , snd p1 + snd p2)
 
-pairSum : (List (Int,Int))->(Int,Int) = foldr pairPlus (0,0)
-
-sumVal x : (List (Int,Int))->Int = fst (pairSum x)
-
-sumWt x : (List (Int,Int))->Int = snd (pairSum x)
-
-w : Int = 10
-
-ff (x,y) : (Int,Int) -> Int = 1
-
-p x : (List (Int,Int))->Bool = (sumWt x) <= w
+p x : (Int,Int)->Bool = (snd x) <= 10
 
 r a b :
-  (List (Int,Int))->(List (Int,Int))->Bool = sumVal a <= sumVal b
+  (Int,Int)->(Int,Int)->Bool = fst a <= fst b
 
 q a b :
-  (List (Int,Int))->(List (Int,Int))->Bool = (sumVal a <= sumVal b) && (sumWt a == sumWt b)
+  (Int,Int)->(Int,Int)->Bool = (fst a <= fst b) && (snd a == snd b)
 
 e1 : (Int,Int) = (0,0)
-f1 x : ((Int,Int),(Int,Int)) -> (Int,Int) = ( fst (fst x) + fst (snd x) , snd (fst x) + snd (snd x) )
-f2 : ((Int,Int),(Int,Int)) -> (Int,Int) = snd
+f1 : (Int,Int) -> (Int,Int) -> (Int,Int) = pairPlus
+f2 a b : (Int,Int) -> (Int,Int) -> (Int,Int) = b

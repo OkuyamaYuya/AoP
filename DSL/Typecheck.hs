@@ -14,7 +14,7 @@ import Debug.Trace
 type ENV_ty = Map String TY
 
 ------------------------
-fa a b = FUN (PAIRty a b) b
+fa a b = FUN a (FUN b b)
 default_env a = fromList[("nil"  ,(LISTty a)),
                          ("cons" ,fa a (LISTty a)),
                          ("outr" ,fa a (LISTty a)),
