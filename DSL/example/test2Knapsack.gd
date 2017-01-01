@@ -2,8 +2,8 @@
 
 ITYPE : (Int,Int)
 OTYPE : (Int,Int)
-BASE : [e1]
-STEP : [f1,f2]
+BASE : [(0,0)]
+STEP : [pairPlus,f2]
 INSTANCE : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
 
 
@@ -19,6 +19,4 @@ r a b :
 q a b :
   (Int,Int)->(Int,Int)->Bool = (fst a <= fst b) && (snd a == snd b)
 
-e1 : (Int,Int) = (0,0)
-f1 : (Int,Int) -> (Int,Int) -> (Int,Int) = pairPlus
 f2 a b : (Int,Int) -> (Int,Int) -> (Int,Int) = b
