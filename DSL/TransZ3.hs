@@ -24,32 +24,34 @@ transZ3 prog env = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return err
-      Accept (_,rr,bb,lx,lq) -> do
-        let template = header bb lx ++ (unlines $ fmap (transZ3_ env) ss)
-        writeFile z3MonotoneR (template ++ makeQuery rr bb "r")
-        writeFile z3MonotoneQ (template ++ makeQuery rr bb "q")
-        -- writeFile z3Connected (template ++ makeQuery2 bb)
+      Accept (_,rr,it,ot,lx,lq) -> do
+        let template = header it lx ++ (unlines $ fmap (transZ3_ env) ss)
+        writeFile z3MonotoneR (template ++ makeQuery rr it ot "r")
+        writeFile z3MonotoneQ (template ++ makeQuery rr it ot "q")
         return template
 
 type Used = Bool
 
-getInfo :: [Sentence] -> Result ([String],[String],TY,Used,Used)
+getInfo :: [Sentence] -> Result ([String],[String],TY,TY,Used,Used)
 getInfo ss =
   let ll = findLeft ss
       rr = findRight ss
-      bb = findBase ss
+      it = findItype ss
+      ot = findOtype ss
       lx = findLexico ss
       lq = findLeq ss
   in
-    case (ll,rr,bb) of
-      (Nothing,_,_) -> 
+    case (ll,rr,it,ot) of
+      (Nothing,_,_,_) -> 
         Reject "write 'LEFT'."
-      (_,Nothing,_) -> 
+      (_,Nothing,_,_) -> 
         Reject "write 'RIGHT'."
-      (_,_,Nothing) -> 
-        Reject "write 'BASETYPE'."
-      (Just jll,Just jrr,Just jbb) -> 
-        Accept (fmap showExpr jll,fmap showExpr jrr,jbb,lx,lq)
+      (_,_,Nothing,_) -> 
+        Reject "write 'ITYPE'."
+      (_,_,_,Nothing) -> 
+        Reject "write 'OTYPE'."
+      (Just jll,Just jrr,Just jit,Just jot) -> 
+        Accept (fmap showExpr jll,fmap showExpr jrr,jit,jot,lx,lq)
   where
     -- find leftmost one.
     findRight [] = Nothing
@@ -58,9 +60,12 @@ getInfo ss =
     findLeft [] = Nothing
     findLeft ((LEFT x):xs) = Just x
     findLeft (_:xs) = findLeft xs
-    findBase [] = Nothing
-    findBase ((BASETYPE x):xs) = Just x
-    findBase (_:xs) = findBase xs
+    findItype [] = Nothing
+    findItype ((ITYPE x):xs) = Just x
+    findItype (_:xs) = findItype xs
+    findOtype [] = Nothing
+    findOtype ((OTYPE x):xs) = Just x
+    findOtype (_:xs) = findOtype xs
     findLexico [] = False
     findLexico ((BIND _ _ _ e):xs)
       | isInfixOf "leq_lexico" (show e) = True
@@ -74,9 +79,10 @@ getInfo ss =
 
 transZ3_ _ (LEFT _) = ""
 transZ3_ _ (RIGHT _) = ""
-transZ3_ _ (BASETYPE _) = ""
-transZ3_ _ (INPUT _) = ""
-transZ3_ _ CommentOut = ""
+transZ3_ _ (ITYPE _) = ""
+transZ3_ _ (OTYPE _) = ""
+transZ3_ _ (INSTANCE _) = ""
+transZ3_ _ COMMENTOUT = ""
 transZ3_ typEnv (BIND varName varArgs varType varExpr) = case varExpr of
   VAR _ -> case varType of
             FUN _ _ -> defineFun varName varArgs varType varExpr typEnv
@@ -140,11 +146,11 @@ declareRecFun recfun typ (FOLDR _ e) = "ERROR"
 
 -- Types of cons,outr,nil depend on a problem user defines.
 header :: TY -> Used -> String
-header bt lx = unlines $ [ 
+header it lx = unlines $ [ 
     "(declare-datatypes (T1 T2) ((Pair (mk-pair (fst T1) (snd T2)))))",
-    "(define-fun cons ((x "++showType bt++") (y (List"++showType bt++"))) (List "++showType bt++")",
+    "(define-fun cons ((x "++showType it++") (y (List"++showType it++"))) (List "++showType it++")",
     "  (insert x y))",
-    "(define-fun outr ((x "++showType bt++") (y (List"++showType bt++"))) (List "++showType bt++")",
+    "(define-fun outr ((x "++showType it++") (y (List"++showType it++"))) (List "++showType it++")",
     "  y)",
     "(define-fun leq ((x Int) (y Int)) Bool",
     "(<= x y))" ] ++
@@ -159,15 +165,15 @@ header bt lx = unlines $ [
     "         (leq_lexico (tail xs) (tail ys)))))))" ] else [""]
 
 
-makeQuery :: [String] -> TY -> String -> String
-makeQuery fs bt order = "(push)\n" ++
+makeQuery :: [String] -> TY -> TY -> String -> String
+makeQuery fs it ot order = "(push)\n" ++
                   a1 ++ a2 ++ a3 ++ 
                   "\n(check-sat)\n(pop)"
   where
     a1 = unlines $ fmap declareBool fs
     a2 = do
       f <- fs
-      mainQuery f fs bt order
+      mainQuery f fs it ot order
     a3 = lastQuery fs
 
 -- (declare-const b Bool)
@@ -185,27 +191,17 @@ lastQuery fs = "(assert (not (and " ++ aux fs ++ ")))"
 -- (assert (forall ((x T)(y T)..)
 --  hogehoge
 -- ))
-mainQuery f fs btype order =
+mainQuery f fs itype otype order =
   let bf = "b" ++ f in
     unlines $ [
     "(assert (= " ++ bf,
-    "    (forall ((xs (List " ++ bb ++ ")) (ys (List " ++ 
-                  bb ++ ")) (a " ++ bb ++ "))",
+    "    (forall ((xs " ++ ot ++ ") (ys " ++ ot ++ ") (a " ++ it ++ "))",
     "    (=> (" ++ order ++ " ys xs) ",
     "    (=> (p (" ++ f ++ " a ys))",
     "        (or "] ++ fmap (target f) fs ++ ["))))))"]
       where
-        bb = showType btype
+        it = showType itype
+        ot = showType otype
         target f g = "\t(and (p (" ++ g ++ " a xs)) (" ++ order ++
                      " (" ++ f ++ " a ys) (" ++ g++ " a xs)))"
-
--- connected order ?
-makeQuery2 btype = unlines [
-      "\n(push)\n(echo \"Is q connected ?\")",
-      "(assert (not",
-      "    (forall ((x (List " ++ bb ++ ")) (y (List " ++ bb ++ ")))",
-      "          (or (q x y) (q y x)))))",
-      "(check-sat)\n(pop)" ]
-  where
-    bb = showType btype
 

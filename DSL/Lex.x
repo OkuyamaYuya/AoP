@@ -40,10 +40,11 @@ tokens :-
     ":" { \s -> T.Colon }
     "=" { \s -> T.Assign }
     "--" { \s -> T.CommentOut }
-    "TYPE" { \s -> T.Basetype }
+    "ITYPE" { \s -> T.Itype }
+    "OTYPE" { \s -> T.Otype }
     "BASE" { \s -> T.LLabel }
     "STEP" { \s -> T.RLabel }
-    "INSTANCE" { \s -> T.Input }
+    "INSTANCE" { \s -> T.Instance }
     $lower [$alpha $digit \_ \’]* { \s -> T.Var s }
 
 {

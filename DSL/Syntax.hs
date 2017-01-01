@@ -41,19 +41,19 @@ instance ShowTypeHs TY where
 data Program = Program [Sentence] deriving (Show,Read)
 
 data Sentence = BIND {name::String, args::[String] , ty2::TY, e2::Expr} 
-              | BASETYPE TY
+              | ITYPE TY
+              | OTYPE TY
               | RIGHT [Expr]
               | LEFT  [Expr]
-              | INPUT [Expr]
-              | CommentOut
+              | INSTANCE [Expr]
+              | COMMENTOUT
                 deriving (Show,Read)
 
 data Expr = NAT Int 
           | B Bool
           | VAR String 
           | PLUS Expr Expr
-          | MINUS Expr Expr
-          | TIMES Expr Expr
+          | MINUS Expr Expr | TIMES Expr Expr
           | EQU  Expr Expr
           | LEQ  Expr Expr
           | AND  Expr Expr

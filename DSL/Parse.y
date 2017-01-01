@@ -40,8 +40,9 @@ import qualified Token as T
   tyList { T.TyList }
   tyPair { T.TyPair }
   '--' { T.CommentOut }
-  BASETYPE { T.Basetype }
-  INPUT    { T.Input }
+  ITYPE { T.Itype }
+  OTYPE { T.Otype }
+  INSTANCE { T.Instance }
   LEFT     { T.LLabel }
   RIGHT    { T.RLabel }
   eol { T.Eol  }
@@ -65,13 +66,14 @@ Sentences :
   | Sentence eol Sentences { $1 : $3 }
 
 Sentence :
-    '--' All                    { S.CommentOut }
+    '--' All                    { S.COMMENTOUT }
   | var ':' Type '=' Expr       { S.BIND $1 [] $3 $5 }
   | var Args ':' Type '=' Expr  { S.BIND $1 $2 $4 $6 }
-  | BASETYPE ':' Type           { S.BASETYPE $3 }
+  | ITYPE ':' Type              { S.ITYPE $3 }
+  | OTYPE ':' Type              { S.OTYPE $3 }
   | LEFT  ':' '[' Sequence ']'  { S.LEFT $4 }
   | RIGHT ':' '[' Sequence ']'  { S.RIGHT $4 }
-  | INPUT ':' '[' Sequence ']'  { S.INPUT $4 }
+  | INSTANCE ':' '[' Sequence ']'  { S.INSTANCE $4 }
 
 Args :
     var { [$1] }

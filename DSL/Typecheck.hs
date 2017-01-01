@@ -28,10 +28,10 @@ default_env a = fromList[("nil"  ,(LISTty a)),
 
 tycheck prog = case prog of
   Reject err -> Reject err
-  Accept (Program ss) -> case (lookupBtype ss) of
-    Nothing -> Reject "You have to write BASETYPE."
-    Just basetype ->
-      Prelude.foldl aux (Accept $ default_env basetype) ss
+  Accept (Program ss) -> case (lookupItype ss) of
+    Nothing -> Reject "You have to write ITYPE."
+    Just itype ->
+      Prelude.foldl aux (Accept $ default_env itype) ss
         where
           aux (Reject a) _ = Reject a
           aux (Accept env) s = case s of
@@ -47,15 +47,15 @@ tycheck prog = case prog of
                         else Reject (show e++" "++show this_type++
                                      " doesn't matches "++
                                      show t++" in "++show s)
-            INPUT input_data ->
-              if LISTty basetype == tycheck_ (LIST input_data) (default_env basetype)
+            INSTANCE input_data ->
+              if LISTty itype == tycheck_ (LIST input_data) (default_env itype)
                  then Accept env
                  else Reject $ "type error in INPUT."
             _ -> Accept env
 
-lookupBtype [] = Nothing
-lookupBtype ((BASETYPE b):_) = Just b
-lookupBtype (_:xs) = lookupBtype xs
+lookupItype [] = Nothing
+lookupItype ((ITYPE b):_) = Just b
+lookupItype (_:xs) = lookupItype xs
 
 
 tycheck_ e env = case e of
@@ -143,4 +143,4 @@ envAdd :: String -> TY -> ENV_ty -> ENV_ty
 envAdd x e env = Map.insert x e env
 
 -- main = do
-  -- print $ tycheck.parse.scanTokens $ "BASETYPE:Int\ne1 : (List Int) = nil"
+  -- print $ tycheck.parse.scanTokens $ "ITYPE:Int\ne1 : (List Int) = nil"

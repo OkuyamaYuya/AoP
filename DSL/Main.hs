@@ -12,8 +12,9 @@ import System.Environment (getArgs)
 import System.Exit
 
 prettyPrint s = case s of
-  BASETYPE x -> putStrLn $ "BASETYPE\n\t" ++ showType x ++ "\n"
-  INPUT x -> putStrLn $ "INPUT\n\t" ++ show x ++ "\n"
+  ITYPE x -> putStrLn $ "ITYPE\n\t" ++ showType x ++ "\n"
+  OTYPE x -> putStrLn $ "OTYPE\n\t" ++ showType x ++ "\n"
+  INSTANCE x -> putStrLn $ "INSTANCE\n\t" ++ show x ++ "\n"
   RIGHT x -> putStrLn $ "RIGHT\n\t" ++ show x ++ "\n"
   LEFT  x -> putStrLn $ "LEFT\n\t" ++ show x ++ "\n"
   BIND n as t e -> do
@@ -22,7 +23,7 @@ prettyPrint s = case s of
     putStrLn $ "type\n\t" ++ show t
     putStrLn $ "expr\n\t" ++ show e
     putStrLn "\n"
-  CommentOut -> return ()
+  COMMENTOUT -> return ()
 
 hsfile = "./listcata/Solver.hs"
 runScript = "./runSolver.sh"

@@ -1,6 +1,7 @@
 -- 0-1 knapsack problem
 
-TYPE : (Int,Int)
+ITYPE : (Int,Int)
+OTYPE : (Int,Int)
 BASE : [e1]
 STEP : [f1,f2]
 INSTANCE : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]

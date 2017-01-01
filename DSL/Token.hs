@@ -28,8 +28,9 @@ data Token = Int Int
            | Assign
            | Foldr
            | CommentOut
-           | Basetype
-           | Input
+           | Itype
+           | Otype
+           | Instance
            | LLabel
            | RLabel
            | Eol

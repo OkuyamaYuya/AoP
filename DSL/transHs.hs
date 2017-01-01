@@ -18,7 +18,7 @@ transHs prog mode = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return ""
-      Accept (_,_,_,lx,lq) ->
+      Accept (_,_,_,_,lx,lq) ->
         return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer mode
 
 
@@ -32,9 +32,10 @@ showConst (f:fs) = "Just . const " ++ showExprHs f ++ " , " ++ showConst fs
 
 transHs_ (LEFT ll)  = "lfuns = [ " ++ showConst ll ++ " ]"
 transHs_ (RIGHT rr) = "rfuns = [ " ++ showFuns rr ++ " ]"
-transHs_ (INPUT xs) = "input_data = " ++ showExprHs (LIST xs)
-transHs_ (BASETYPE _) = ""
-transHs_ CommentOut = ""
+transHs_ (INSTANCE xs) = "input_data = " ++ showExprHs (LIST xs)
+transHs_ (ITYPE _) = ""
+transHs_ (OTYPE _) = ""
+transHs_ COMMENTOUT = ""
 transHs_ (BIND varName varArgs varType varExpr) = case varExpr of
   FOLDR _ _ -> defineCata varName varArgs varType varExpr
   _

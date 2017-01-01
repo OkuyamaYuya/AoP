@@ -1,6 +1,7 @@
 -- maximum init sum
 
-TYPE : Int
+ITYPE : Int
+OTYPE : List Int
 BASE : [e1]
 STEP : [f1,f2]
 INSTANCE : [1,-1,1,-3,10,-1,2,-111,2,2]
