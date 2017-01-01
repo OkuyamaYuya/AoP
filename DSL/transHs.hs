@@ -18,8 +18,8 @@ transHs prog mode = case prog of
   Accept (Program ss) ->
     case getInfo ss of
       Reject err -> return ""
-      Accept (_,_,_,_,lx,lq) ->
-        return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer mode
+      Accept (_,_,_,ot,lx,lq) ->
+        return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer mode ot
 
 
 showFuns :: [Expr] -> String
@@ -77,11 +77,13 @@ header lx lq =
         ++ if lx then ["leq_lexico = (<=)"] else []
         ++ if lq then ["leq = (<=)"] else []
 
-footer mode = aboutSolver ++ "\n" ++ aboutMain
+footer mode otype = aboutSolver ++ "\n" ++ aboutMain
   where
     aboutSolver = "thin_or_greedy = solverMain (lfuns,rfuns) p r q"
-    aboutMain = "main =" ++
-                "  print.fromList.thin_or_greedy " ++ mode ++ " $ toList input_data"
+    aboutMain = case otype of
+      LISTty _ -> "main =" ++
+                  "  print.fromList.thin_or_greedy " ++ mode ++ " $ toList input_data"
+      _ -> "main = print.thin_or_greedy " ++ mode ++ " $ toList input_data"
 
 -- main = do
 --   putStrLn $ transHs_ (BIND "sum" ["xs"] (FUN (LISTty INT) INT) (FOLDR (VAR "f") (NAT 0)))
