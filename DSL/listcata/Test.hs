@@ -55,8 +55,7 @@ knapF = (funs1,funs2)
   where
     p = within 10
     funs1 = [ Just . const nil ]
-    funs2 = [ Just . outr , Just . cons ]
-    -- funs2 = [ Just . outr , test p . cons ]
+    funs2 = [ Just . outr_ , Just . cons_ ]
 
 knapMain = solverMain knapF (within 10) knapR knapQ
 
@@ -78,7 +77,7 @@ llsF :: Ord a => Funs a (List a)
 llsF = (funs1,funs2)
   where
     funs1 = [ Just . const nil ]
-    funs2 = [ Just . outr , Just . cons ]
+    funs2 = [ Just . outr_ , Just . cons_ ]
 
 llsMain = solverMain llsF (\x->True) llsR llsQ
 
@@ -118,7 +117,7 @@ driveQ a b = lengthL a >= lengthL b && doko a <= doko b
     doko (In (Inr (Cross a b))) = pos a
 
 gasOK :: Int -> Stop -> Predicate (List Stop)
-gasOK full goal = \x -> (fst (foldF f (cons $ Inr (Cross goal x))) <= full)
+gasOK full goal = \x -> (fst (foldF f (cons_ $ Inr (Cross goal x))) <= full)
   where
     f (Inl One) = (0,Stop 0) -- (maximux distance,previous position)
     f (Inr (Cross cur (maxDist,preStop))) = (max maxDist curDist,cur)
@@ -128,7 +127,7 @@ driveF :: Funs Stop (List Stop)
 driveF = (funs1,funs2)
   where
     funs1 = [ Just . const nil ]
-    funs2 = [ aux cons , aux outr ]
+    funs2 = [ aux cons_ , aux outr_ ]
     aux g (x@(Inr (Cross a b))) = test (gasOK 70 a) (g x)
 
 driveMain mode x = solverMain driveF (gasOK 70 (headL x)) driveR driveQ mode x

@@ -14,6 +14,6 @@ q a b : (List Int)->(List Int)->Bool = mySum a <= mySum b
 p x : (List Int) -> Bool = True
 
 e1 : List Int = nil
-f1 : (Int , (List Int) ) -> (List Int) = cons
-f2 a : (Int , (List Int) ) -> (List Int) = nil
+f1 : Int -> (List Int) -> (List Int) = cons
+f2 a as: Int -> (List Int) -> (List Int) = nil
 

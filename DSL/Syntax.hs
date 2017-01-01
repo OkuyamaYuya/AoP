@@ -110,5 +110,6 @@ instance ShowExprHs Expr where
 
 -- main = do
 --   putStrLn $ showExprHs $ LIST [NAT 1,NAT 2,NAT 40]
+--   putStrLn $ showExprHs $ VAR "cons"
 --   putStrLn $ showTypeHs $ LISTty INT
 --   putStrLn $ showExprHs $ AND (APP (APP (VAR "leq") (APP (VAR "sumVal") (VAR "a"))) (APP (VAR "sumVal") (VAR "b"))) (EQU (APP (VAR "sumWt") (VAR "a")) (APP (VAR "sumWt") (VAR "b")))

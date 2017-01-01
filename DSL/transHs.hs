@@ -21,9 +21,10 @@ transHs prog mode = case prog of
       Accept (_,_,_,lx,lq) ->
         return $ header lx lq ++ unlines (fmap transHs_ ss) ++ footer mode
 
+
 showFuns :: [Expr] -> String
-showFuns [f] = "Just . " ++ showExprHs f
-showFuns (f:fs) = "Just . " ++ showExprHs f ++ " , " ++ showFuns fs
+showFuns [f] = "\\(Inr (Cross x y))->(Just $ "++showExprHs f++" x y)"
+showFuns (f:fs) = "\\(Inr (Cross x y))->(Just $ "++showExprHs f++" x y) , " ++ showFuns fs
 
 showConst :: [Expr] -> String
 showConst [f] = "Just . const " ++ showExprHs f

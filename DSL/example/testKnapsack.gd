@@ -28,5 +28,5 @@ q a b :
   (List (Int,Int))->(List (Int,Int))->Bool = (sumVal a <= sumVal b) && (sumWt a == sumWt b)
 
 e1 : (List (Int,Int)) = nil
-f1 : ((Int,Int),(List (Int,Int))) -> (List (Int,Int)) = cons
-f2 : ((Int,Int),(List (Int,Int))) -> (List (Int,Int)) = outr
+f1 : (Int,Int)-> (List (Int,Int)) -> List (Int,Int) = cons
+f2 : (Int,Int)-> (List (Int,Int)) -> List (Int,Int) = outr

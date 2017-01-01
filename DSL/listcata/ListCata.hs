@@ -220,16 +220,18 @@ solverMain funs p r q mode =
 
 out (In x) = x
 nil = In (Inl One)
-cons (Inr x) = In (Inr x)
-outl (Inr (Cross x y)) = x
-outr (Inr (Cross x y)) = y
-headL = outl.out
+cons_ (Inr x) = In (Inr x)
+outr_ (Inr (Cross x y)) = y
+outl_ (Inr (Cross x y)) = x
+headL = outl_.out
+
+cons a as = In $ Inr (Cross a as)
+outr a as = as
 
 sumL :: List Int -> Int
 sumL = foldF plusF
   where plusF (Inl One) = 0
         plusF (Inr (Cross a b)) = a + b
-
 
 lengthL :: List a -> Int
 lengthL = foldF plusF
@@ -243,14 +245,14 @@ subsequences = foldF ( mapE funs . cppL )
   where
     funs = (funs1,funs2)
     funs1 = [ Just . const nil ]
-    funs2 = [ Just . cons , Just . outr ]
+    funs2 = [ Just . cons_ , Just . outr_ ]
 
 inits :: Eq a => List a -> Set (List a)
 inits = foldF ( mapE funs . cppL )
   where
     funs = (funs1,funs2)
     funs1 = [ Just . const nil ]
-    funs2 = [ Just . cons , Just . const nil ]
+    funs2 = [ Just . cons_ , Just . const nil ]
 
 tails' :: List a -> Set (List a)
 tails' = foldF tailF
@@ -270,4 +272,3 @@ merge r (a:xs,b:ys) | a `r` b = a : merge r (xs,b:ys)
                     | otherwise = b : merge r (a:xs,ys)
 
 -------------------------------------------------
-
