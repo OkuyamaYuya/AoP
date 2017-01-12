@@ -4,7 +4,7 @@ ITYPE : (Int,Int)
 OTYPE : (Int,Int)
 BASE : [(0,0)]
 STEP : [pairPlus,f2]
-INSTANCE : [ (50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
+INSTANCE : [(50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
 
 
 pairPlus p1 p2 :
