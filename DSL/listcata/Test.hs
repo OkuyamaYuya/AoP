@@ -71,7 +71,7 @@ llsR :: Order (List Char)
 llsR = (<=)
 -- local criterion
 llsQ :: Order (List Char)
-llsQ = (<=)
+llsQ a b = a <= b && lengthL a == lengthL b
 
 llsF :: Ord a => Funs a (List a)
 llsF = (funs1,funs2)
@@ -79,7 +79,10 @@ llsF = (funs1,funs2)
     funs1 = [ Just . const nil ]
     funs2 = [ Just . outr_ , Just . cons_ ]
 
-llsMain = solverMain llsF (\x->True) llsR llsQ
+llsMain = solverMain llsF (pp) llsR llsQ
+
+pp x = lengthL x <= 3
+-- pp x = True
 
 
 -------------------------------------------------
@@ -181,6 +184,6 @@ thinSet' q = scanr step []
 
 main :: IO()
 main = do
-  fff (knapFuns,itemss)
+  -- fff (knapFuns,itemss)
   fff (llsFuns,strings)
-  fff (driveFuns,stopss)
+  -- fff (driveFuns,stopss)
