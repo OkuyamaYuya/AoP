@@ -2,8 +2,8 @@
 
 ITYPE : (Int,Int)
 OTYPE : List (Int,Int)
-BASE : [e1]
-STEP : [f1,f2]
+BASE : [nil]
+STEP : [cons,outr]
 INSTANCE : [(50,4),(3,12),(1,1),(10,5),(4,31),(4,2)]
 
 
@@ -27,7 +27,3 @@ r a b :
 
 q a b :
   (List (Int,Int))->(List (Int,Int))->Bool = (sumVal a <= sumVal b) && (sumWt a == sumWt b)
-
-e1 : (List (Int,Int)) = nil
-f1 : (Int,Int)-> (List (Int,Int)) -> List (Int,Int) = cons
-f2 : (Int,Int)-> (List (Int,Int)) -> List (Int,Int) = outr
