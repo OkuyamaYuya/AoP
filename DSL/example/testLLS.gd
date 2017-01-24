@@ -11,7 +11,3 @@ q : (List Int)->(List Int)->Bool = leq_lexico
 
 p x : (List Int) -> Bool = True
 
-e1 : (List Int) = nil
-f1 : Int -> (List Int) -> List Int = cons
-f2 : Int -> (List Int) -> List Int = outr
-
