@@ -11,7 +11,7 @@ Parse.hs : $(PARSE)
 	happy $(PARSE)
 
 Main : Lex.hs Parse.hs $(MAIN)
-	ghc --make $(MAIN)
+	ghc --make $(MAIN) -o gd
 
 clean:
 	rm -f *.o *.hi Parse.hs Lex.hs
