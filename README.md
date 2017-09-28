@@ -2,7 +2,7 @@
 
 This DSL checks whether Greedy algorithm or Dynamic programming can be used to solve an optimization problem, derive a efficient program.
 
-### Example
+### Input Example
 
 ```haskell
 -- 0-1 knapsack problem
@@ -37,4 +37,4 @@ q a b :
 
 ```
 
-This is an input program representing 0-1 knapsack problem. GD system takes this as input, and generates haskell program which solves this 0-1 knapsack problem.
+This is an input program representing 0-1 knapsack problem. GD system takes this as input, and generates haskell program which solves this 0-1 knapsack problem by Dynamic programming.
