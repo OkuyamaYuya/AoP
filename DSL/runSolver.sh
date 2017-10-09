@@ -12,7 +12,7 @@ if [ ! -f ${FILE} ]; then
 
 else
 
-  result=`runghc ${FILE}`
+  result=`stack runghc ${FILE}`
   echo $result
 
 fi
